@@ -85,7 +85,7 @@ class AgreementContractTests {
 
         ledgerServices.ledger {
 
-            // from null status
+            // From null status
             // Incorrect Statuses
             transaction {
                 command(alice.publicKey, AgreementContract.Commands.Propose())
@@ -110,6 +110,11 @@ class AgreementContractTests {
             }
             transaction {
                 command(alice.publicKey, AgreementContract.Commands.Repropose())
+                output(AgreementContract.ID, proposedState)
+                `fails with`("When there is no input AgreementState the path must be Propose -> Proposed")
+            }
+            transaction {
+                command(alice.publicKey, AgreementContract.Commands.Complete())
                 output(AgreementContract.ID, proposedState)
                 `fails with`("When there is no input AgreementState the path must be Propose -> Proposed")
             }
@@ -146,8 +151,14 @@ class AgreementContractTests {
                 output(AgreementContract.ID, agreedState)
                 `fails with`("When the input Status is Proposed, the path must be Reject -> Rejected, or Agree -> Agreed.")
             }
+            transaction {
+                input(AgreementContract.ID, proposedState)
+                command(alice.publicKey, AgreementContract.Commands.Complete())
+                output(AgreementContract.ID, agreedState)
+                `fails with`("When the input Status is Proposed, the path must be Reject -> Rejected, or Agree -> Agreed.")
+            }
 
-            // From rejected Status
+            // From Rejected Status
             // Incorrect Statuses
             transaction {
                 input(AgreementContract.ID, rejectedState)
@@ -185,14 +196,56 @@ class AgreementContractTests {
                 output(AgreementContract.ID, proposedState)
                 `fails with`("When the input Status is Rejected, the path must be Repropose -> Proposed.")
             }
+            transaction {
+                input(AgreementContract.ID, rejectedState)
+                command(alice.publicKey, AgreementContract.Commands.Complete())
+                output(AgreementContract.ID, proposedState)
+                `fails with`("When the input Status is Rejected, the path must be Repropose -> Proposed.")
+            }
 
             // From Agreed
+            // Incorrect Status
+            transaction {
+                input(AgreementContract.ID, agreedState)
+                command(alice.publicKey, AgreementContract.Commands.Complete())
+                output(AgreementContract.ID, proposedState)
+                `fails with`("When the input Status is Agree, the path must be Complete -> null.")
+            }
+            transaction {
+                input(AgreementContract.ID, agreedState)
+                command(alice.publicKey, AgreementContract.Commands.Complete())
+                output(AgreementContract.ID, rejectedState)
+                `fails with`("When the input Status is Agree, the path must be Complete -> null.")
+            }
+            transaction {
+                input(AgreementContract.ID, agreedState)
+                command(alice.publicKey, AgreementContract.Commands.Complete())
+                output(AgreementContract.ID, agreedState)
+                `fails with`("When the input Status is Agree, the path must be Complete -> null.")
+            }
+            // Incorrect Commands
             transaction {
                 input(AgreementContract.ID, agreedState)
                 command(alice.publicKey, AgreementContract.Commands.Propose())
-                output(AgreementContract.ID, proposedState)
-                `fails with`("When the input Status is Agreed, there can be no transaction.")
+                `fails with`("When the input Status is Agree, the path must be Complete -> null.")
             }
+            transaction {
+                input(AgreementContract.ID, agreedState)
+                command(alice.publicKey, AgreementContract.Commands.Reject())
+                `fails with`("When the input Status is Agree, the path must be Complete -> null.")
+            }
+            transaction {
+                input(AgreementContract.ID, agreedState)
+                command(alice.publicKey, AgreementContract.Commands.Repropose())
+                `fails with`("When the input Status is Agree, the path must be Complete -> null.")
+            }
+            transaction {
+                input(AgreementContract.ID, agreedState)
+                command(alice.publicKey, AgreementContract.Commands.Agree())
+                `fails with`("When the input Status is Agree, the path must be Complete -> null.")
+            }
+
+
 
 
 

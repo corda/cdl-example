@@ -69,8 +69,11 @@ class AgreementContract : Contract {
                 }
             }
             is Agreed -> {
+                val pathList = listOf(
+                        Path(Commands.Complete(), null)
+                )
                 requireThat {
-                    "When the input Status is Agreed, there can be no transaction." using (false)
+                    "When the input Status is Agree, the path must be Complete -> null." using (pathList.contains(txPath))
                 }
             }
         }
@@ -105,5 +108,6 @@ class AgreementContract : Contract {
         class Repropose: Commands
         class Reject: Commands
         class Agree: Commands
+        class Complete: Commands
     }
 }
