@@ -41,7 +41,7 @@ class AgreementContract : Contract {
         if (outputAgreementStates.isNotEmpty()) outputStatus = outputAgreementStates.first().status
 
 
-        // Transition Constraints - Commands
+        // Transition Constraints
 
         val txPath =  Path(command.value, outputStatus)
         when (inputStatus) {
@@ -78,11 +78,41 @@ class AgreementContract : Contract {
             }
         }
 
+        // Universal constraints
+
+        val allStates = inputAgreementStates + outputAgreementStates
+
+        for (s in allStates) {
+
+            requireThat {
+
+                "The buyer and seller must be different Parties." using (s.buyer != s.seller)
+                "The proposer must be either the buyer or the seller." using (listOf(s.buyer, s.seller).contains(s.proposer))
+                "The consenter must be either the buyer or the seller." using (listOf(s.buyer, s.seller).contains(s.consenter))
+                "The consenter and proposer must be different Parties." using (s.consenter != s.proposer)
+            }
+
+        }
+
+
+
+
     }
 
+
+
+
+
+
+
+
+
+
+
+
+
+
     class Path(val command: Commands, val outputStatus: Status?){
-
-
 
         override fun equals(other: Any?): Boolean {
             if(other == null) return false
@@ -99,8 +129,6 @@ class AgreementContract : Contract {
     }
 
 
-
-    // todo: consider adding archive Command - allows testing of no outputs
 
     // Used to indicate the transaction's intent.
     interface Commands : CommandData {

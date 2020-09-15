@@ -5,6 +5,7 @@ import com.cdlexample.states.AgreementStatus
 import net.corda.core.contracts.Amount
 import net.corda.core.identity.CordaX500Name
 import net.corda.testing.core.TestIdentity
+import net.corda.testing.dsl.LedgerDSL
 import net.corda.testing.node.MockServices
 import net.corda.testing.node.ledger
 import org.junit.Test
@@ -15,9 +16,10 @@ class AgreementContractTests {
 
     val alice = TestIdentity(CordaX500Name("Alice Ltd", "London", "GB"))
     val bob = TestIdentity(CordaX500Name("Bob Inc", "New York", "US"))
+    val charlie = TestIdentity(CordaX500Name("Charlie SA", "Paris", "FR"))
 
     @Test
-    fun `correctly formed Tx verifies`() {  // todo: modify as add more constraints
+    fun `check correctly formed Tx verifies`() {  // todo: modify as add more constraints
 
         val input = AgreementState(AgreementStatus.Proposed(),
                 alice.party, bob.party, "Some grapes", Amount(10, Currency.getInstance("GBP")), alice.party, bob.party)
@@ -35,7 +37,7 @@ class AgreementContractTests {
     }
 
     @Test
-    fun `All inputs of type AgreementState have the same Status`() {
+    fun `check all inputs of type AgreementState have the same Status`() {
 
         val input1 = AgreementState(AgreementStatus.Proposed(),
                 alice.party, bob.party, "Some grapes", Amount(10, Currency.getInstance("GBP")), alice.party, bob.party)
@@ -55,7 +57,7 @@ class AgreementContractTests {
 
 
     @Test
-    fun `All outputs of type AgreementState have the same Status`() {
+    fun `check all outputs of type AgreementState have the same Status`() {
 
         val output1 = AgreementState(AgreementStatus.Proposed(), alice.party, bob.party, "Some grapes", Amount(10, Currency.getInstance("GBP")), alice.party, bob.party)
         val output2 = AgreementState(AgreementStatus.Proposed(), alice.party, bob.party, "Some more grapes", Amount(10, Currency.getInstance("GBP")), alice.party, bob.party)
@@ -74,7 +76,7 @@ class AgreementContractTests {
 
 
     @Test
-    fun `non happy paths fail by sample`() {
+    fun `check non happy transition paths`() {
 
         val proposedState = AgreementState(AgreementStatus.Proposed(),
                 alice.party, bob.party, "Some grapes", Amount(10, Currency.getInstance("GBP")), alice.party, bob.party)
@@ -292,7 +294,49 @@ class AgreementContractTests {
     }
 
 
+    @Test
+    fun `check universal constraints`(){
 
+        val state1 = AgreementState(AgreementStatus.Proposed(), alice.party, alice.party, "Some grapes", Amount(10, Currency.getInstance("GBP")), alice.party, bob.party)
+        val state2 = AgreementState(AgreementStatus.Proposed(), alice.party, bob.party, "Some grapes", Amount(10, Currency.getInstance("GBP")), charlie.party, bob.party)
+        val state3 = AgreementState(AgreementStatus.Proposed(), alice.party, bob.party, "Some grapes", Amount(10, Currency.getInstance("GBP")), alice.party, charlie.party)
+        val state4 = AgreementState(AgreementStatus.Proposed(), alice.party, bob.party, "Some grapes", Amount(10, Currency.getInstance("GBP")), alice.party, alice.party)
+
+
+
+        ledgerServices.ledger {
+            transaction {
+                command(alice.publicKey, AgreementContract.Commands.Propose())
+                output(AgreementContract.ID, state1)
+                `fails with`("The buyer and seller must be different Parties.")
+            }
+            transaction {
+                command(alice.publicKey, AgreementContract.Commands.Propose())
+                output(AgreementContract.ID, state2)
+                `fails with`("The proposer must be either the buyer or the seller.")
+            }
+            transaction {
+                command(alice.publicKey, AgreementContract.Commands.Propose())
+                output(AgreementContract.ID, state3)
+                `fails with`("The consenter must be either the buyer or the seller.")
+            }
+            transaction {
+                command(alice.publicKey, AgreementContract.Commands.Propose())
+                output(AgreementContract.ID, state4)
+                `fails with`("The consenter and proposer must be different Parties.")
+            }
+
+
+
+
+        }
+
+
+
+
+
+
+    }
 
 
 
