@@ -83,16 +83,25 @@ class AgreementContract : Contract {
         val allStates = inputAgreementStates + outputAgreementStates
 
         for (s in allStates) {
-
             requireThat {
-
                 "The buyer and seller must be different Parties." using (s.buyer != s.seller)
                 "The proposer must be either the buyer or the seller." using (listOf(s.buyer, s.seller).contains(s.proposer))
                 "The consenter must be either the buyer or the seller." using (listOf(s.buyer, s.seller).contains(s.consenter))
                 "The consenter and proposer must be different Parties." using (s.consenter != s.proposer)
             }
-
         }
+
+        // Status Constraints
+
+        for (s in allStates) {
+
+            // todo: check that all fields are filled in
+        }
+
+
+
+
+
 
 
 
@@ -122,7 +131,7 @@ class AgreementContract : Contract {
             if (castClass.outputStatus == null && this.outputStatus != null) return false
             if (castClass.outputStatus != null && this.outputStatus == null) return false
             if (castClass.outputStatus != null && this.outputStatus != null) {
-                if (castClass.outputStatus!!::class.java != this.outputStatus!!::class.java) return false
+                if (castClass.outputStatus::class.java != this.outputStatus::class.java) return false
             }
             return true
         }

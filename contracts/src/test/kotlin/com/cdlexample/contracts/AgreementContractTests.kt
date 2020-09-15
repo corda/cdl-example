@@ -305,6 +305,8 @@ class AgreementContractTests {
 
 
         ledgerServices.ledger {
+
+            // As output states
             transaction {
                 command(alice.publicKey, AgreementContract.Commands.Propose())
                 output(AgreementContract.ID, state1)
@@ -325,10 +327,6 @@ class AgreementContractTests {
                 output(AgreementContract.ID, state4)
                 `fails with`("The consenter and proposer must be different Parties.")
             }
-
-
-
-
         }
 
 
