@@ -75,14 +75,6 @@ class AgreementContract : Contract {
             }
         }
 
-
-println("MB: break")
-
-
-
-
-
-
     }
 
     class Path(val command: Commands, val outputStatus: Status?){
