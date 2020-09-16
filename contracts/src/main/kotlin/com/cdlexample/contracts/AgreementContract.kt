@@ -93,9 +93,27 @@ class AgreementContract : Contract {
 
         // Status Constraints
 
+//        todo: check existing tests + add tests for Status Constraints (change rejected state in 'check non happy transition paths'
+
+        // Note, in kotlin non-nullable properties must be populated, hence only need to check the nullable properties
         for (s in allStates) {
 
-            // todo: check that all fields are filled in
+            when(s.status){
+                is Proposed -> {
+                    requireThat {
+                        "When status is Proposed rejectionReason must be null" using (s.rejectionReason == null)
+                        "When status is Rejected rejectedBy must be null" using (s.rejectedBy == null)
+                    }
+                }
+                is Rejected -> {
+                    requireThat {
+                        "When status is Rejected rejectionReason must not be null" using (s.rejectionReason != null)
+                        "When status is Rejected rejectedBy must not be null" using (s.rejectedBy != null)
+                    }
+
+                }
+                is Agreed -> {}
+            }
         }
 
 

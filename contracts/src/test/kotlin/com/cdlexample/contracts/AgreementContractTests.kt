@@ -19,18 +19,44 @@ class AgreementContractTests {
     val charlie = TestIdentity(CordaX500Name("Charlie SA", "Paris", "FR"))
 
     @Test
-    fun `check correctly formed Tx verifies`() {  // todo: modify as add more constraints
+    fun `check the happy path`() {  // todo: modify as add more constraints
 
-        val input = AgreementState(AgreementStatus.Proposed(),
-                alice.party, bob.party, "Some grapes", Amount(10, Currency.getInstance("GBP")), alice.party, bob.party)
-        val output = AgreementState(AgreementStatus.Agreed(),
-                alice.party, bob.party, "Some more grapes", Amount(10, Currency.getInstance("GBP")), alice.party, bob.party)
+        val proposed1 = AgreementState(AgreementStatus.Proposed(),
+                alice.party, bob.party, "One bunch of Bananas", Amount(10, Currency.getInstance("GBP")), alice.party, bob.party)
+        val rejected = AgreementState(AgreementStatus.Rejected(),
+                alice.party, bob.party, "One bunch of Bananas", Amount(10, Currency.getInstance("GBP")), alice.party, bob.party, "Run out of Bananas", alice.party)
+        val proposed2 = AgreementState(AgreementStatus.Proposed(),
+                alice.party, bob.party, "One bag of grapes", Amount(8, Currency.getInstance("GBP")), bob.party, alice.party)
+        val agreed = AgreementState(AgreementStatus.Agreed(),
+                alice.party, bob.party, "One bag of grapes", Amount(8, Currency.getInstance("GBP")), bob.party, alice.party)
 
         ledgerServices.ledger {
             transaction {
-                input(AgreementContract.ID, input)
+                command(alice.publicKey, AgreementContract.Commands.Propose())
+                output(AgreementContract.ID, proposed1)
+                verifies()
+            }
+            transaction {
+                input(AgreementContract.ID, proposed1)
+                command(alice.publicKey, AgreementContract.Commands.Reject())
+                output(AgreementContract.ID, rejected)
+                verifies()
+            }
+            transaction {
+                input(AgreementContract.ID, rejected)
+                command(alice.publicKey, AgreementContract.Commands.Repropose())
+                output(AgreementContract.ID, proposed2)
+                verifies()
+            }
+            transaction {
+                input(AgreementContract.ID, proposed2)
                 command(alice.publicKey, AgreementContract.Commands.Agree())
-                output(AgreementContract.ID, output)
+                output(AgreementContract.ID, agreed)
+                verifies()
+            }
+            transaction {
+                input(AgreementContract.ID, agreed)
+                command(alice.publicKey, AgreementContract.Commands.Complete())
                 verifies()
             }
         }
@@ -81,7 +107,7 @@ class AgreementContractTests {
         val proposedState = AgreementState(AgreementStatus.Proposed(),
                 alice.party, bob.party, "Some grapes", Amount(10, Currency.getInstance("GBP")), alice.party, bob.party)
         val rejectedState = AgreementState(AgreementStatus.Rejected(),
-                alice.party, bob.party, "Some more grapes", Amount(10, Currency.getInstance("GBP")), alice.party, bob.party)
+                alice.party, bob.party, "Some more grapes", Amount(10, Currency.getInstance("GBP")), alice.party, bob.party, "I don't like grapes", alice.party)
         val agreedState = AgreementState(AgreementStatus.Agreed(),
                 alice.party, bob.party, "Some more grapes", Amount(10, Currency.getInstance("GBP")), alice.party, bob.party)
 
@@ -328,14 +354,73 @@ class AgreementContractTests {
                 `fails with`("The consenter and proposer must be different Parties.")
             }
         }
+    }
+
+    @Test
+    fun `check status Constraints`() {
+
+        val proposed1 = AgreementState(AgreementStatus.Proposed(),
+                alice.party, bob.party, "Some grapes", Amount(10, Currency.getInstance("GBP")), alice.party, bob.party)
+        val proposed2 = AgreementState(AgreementStatus.Proposed(),
+                alice.party, bob.party, "Some grapes", Amount(10, Currency.getInstance("GBP")), alice.party, bob.party, "I don't like grapes")
+        val proposed3 = AgreementState(AgreementStatus.Proposed(),
+                alice.party, bob.party, "Some grapes", Amount(10, Currency.getInstance("GBP")), alice.party, bob.party, rejectedBy = alice.party)
+        val proposed4 = AgreementState(AgreementStatus.Proposed(),
+                alice.party, bob.party, "Some grapes", Amount(10, Currency.getInstance("GBP")), alice.party, bob.party, "I don't like grapes", alice.party)
+
+        val rejected1 = AgreementState(AgreementStatus.Rejected(),
+                alice.party, bob.party, "Some more grapes", Amount(10, Currency.getInstance("GBP")), alice.party, bob.party, "I don't like grapes")
+        val rejected2 = AgreementState(AgreementStatus.Rejected(),
+                alice.party, bob.party, "Some more grapes", Amount(10, Currency.getInstance("GBP")), alice.party, bob.party, rejectedBy = alice.party)
+        val rejected3 = AgreementState(AgreementStatus.Rejected(),
+                alice.party, bob.party, "Some more grapes", Amount(10, Currency.getInstance("GBP")), alice.party, bob.party)
 
 
+        ledgerServices.ledger {
+            // Proposed
+            transaction {
+                command(alice.publicKey, AgreementContract.Commands.Propose())
+                output(AgreementContract.ID, proposed2)
+                `fails with`("When status is Proposed rejectionReason must be null")
+            }
+            transaction {
+                command(alice.publicKey, AgreementContract.Commands.Propose())
+                output(AgreementContract.ID, proposed3)
+                `fails with`("When status is Rejected rejectedBy must be null")
+            }
+            transaction {
+                command(alice.publicKey, AgreementContract.Commands.Propose())
+                output(AgreementContract.ID, proposed4)
+                `fails with`("When status is Proposed rejectionReason must be null")
+            }
+
+            // Rejected
+            transaction {
+                input(AgreementContract.ID, proposed1)
+                command(alice.publicKey, AgreementContract.Commands.Reject())
+                output(AgreementContract.ID, rejected1)
+                `fails with`("When status is Rejected rejectedBy must not be null")
+            }
+            transaction {
+                input(AgreementContract.ID, proposed1)
+                command(alice.publicKey, AgreementContract.Commands.Reject())
+                output(AgreementContract.ID, rejected2)
+                `fails with`("When status is Rejected rejectionReason must not be null")
+            }
+            transaction {
+                input(AgreementContract.ID, proposed1)
+                command(alice.publicKey, AgreementContract.Commands.Reject())
+                output(AgreementContract.ID, rejected3)
+                `fails with`("When status is Rejected rejectionReason must not be null")
+            }
+
+
+        }
 
 
 
 
     }
-
 
 
 }
