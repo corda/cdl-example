@@ -19,7 +19,7 @@ class AgreementContractTests {
     val charlie = TestIdentity(CordaX500Name("Charlie SA", "Paris", "FR"))
 
     @Test
-    fun `check the happy path`() {  // todo: modify as add more constraints
+    fun `check the happy path`() {
 
         val proposed1 = AgreementState(AgreementStatus.Proposed(),
                 alice.party, bob.party, "One bunch of Bananas", Amount(10, Currency.getInstance("GBP")), alice.party, bob.party)
@@ -76,7 +76,7 @@ class AgreementContractTests {
                 input(AgreementContract.ID, input2)
                 input(AgreementContract.ID, input3)
                 command(alice.publicKey, AgreementContract.Commands.Propose())
-                failsWith("All inputs of type AgreementState have the same Status.")
+                failsWith("All inputs of type AgreementState must have the same status.")
             }
         }
     }
@@ -95,7 +95,7 @@ class AgreementContractTests {
                 output(AgreementContract.ID, output2)
                 output(AgreementContract.ID, output3)
                 command(alice.publicKey, AgreementContract.Commands.Propose())
-                failsWith("All outputs of type AgreementState have the same Status.")
+                failsWith("All outputs of type AgreementState must have the same status.")
             }
         }
     }

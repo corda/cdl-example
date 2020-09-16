@@ -19,29 +19,18 @@ class AgreementContract : Contract {
     // does not throw an exception.
     override fun verify(tx: LedgerTransaction) {
 
-        // Extract command, inputs and outputs
+        verifyTransitionConstraints(tx)
+        verifyUniversalConstraints(tx)
+        verifyStatusConstraints(tx)
+
+    }
+
+
+    fun verifyTransitionConstraints(tx: LedgerTransaction){
 
         val command = tx.commands.requireSingleCommand<Commands>()
-        val inputAgreementStates = tx.inputsOfType<AgreementState>()
-        val outputAgreementStates = tx.outputsOfType<AgreementState>()
-
-        // Check Some assumed invariants and get Statuses
-
-        val inputStatuses = inputAgreementStates.map {it.status::class.java}.distinct()
-        val outputStatuses = outputAgreementStates.map {it.status::class.java}.distinct()
-
-        requireThat {
-            "All inputs of type AgreementState have the same Status." using ( inputStatuses.size <= 1)
-            "All outputs of type AgreementState have the same Status." using ( outputStatuses.size <= 1)}
-
-        var inputStatus: Status? = null
-        if(inputAgreementStates.isNotEmpty()) inputStatus = inputAgreementStates.first().status
-
-        var outputStatus: Status? = null
-        if (outputAgreementStates.isNotEmpty()) outputStatus = outputAgreementStates.first().status
-
-
-        // Transition Constraints
+        val inputStatus = requireSingleInputStatus(tx)
+        val outputStatus = requireSingleOutputStatus(tx)
 
         val txPath =  Path(command.value, outputStatus)
         when (inputStatus) {
@@ -77,10 +66,11 @@ class AgreementContract : Contract {
                 }
             }
         }
+    }
 
-        // Universal constraints
+    fun verifyUniversalConstraints(tx: LedgerTransaction){
 
-        val allStates = inputAgreementStates + outputAgreementStates
+        val allStates = tx.inputsOfType<AgreementState>() + tx.outputsOfType<AgreementState>()
 
         for (s in allStates) {
             requireThat {
@@ -90,10 +80,10 @@ class AgreementContract : Contract {
                 "The consenter and proposer must be different Parties." using (s.consenter != s.proposer)
             }
         }
+    }
 
-        // Status Constraints
-
-//        todo: check existing tests + add tests for Status Constraints (change rejected state in 'check non happy transition paths'
+    fun verifyStatusConstraints(tx: LedgerTransaction){
+        val allStates = tx.inputsOfType<AgreementState>() + tx.outputsOfType<AgreementState>()
 
         // Note, in kotlin non-nullable properties must be populated, hence only need to check the nullable properties
         for (s in allStates) {
@@ -115,28 +105,7 @@ class AgreementContract : Contract {
                 is Agreed -> {}
             }
         }
-
-
-
-
-
-
-
-
-
     }
-
-
-
-
-
-
-
-
-
-
-
-
 
 
     class Path(val command: Commands, val outputStatus: Status?){
@@ -156,7 +125,6 @@ class AgreementContract : Contract {
     }
 
 
-
     // Used to indicate the transaction's intent.
     interface Commands : CommandData {
         class Propose : Commands
@@ -165,4 +133,25 @@ class AgreementContract : Contract {
         class Agree: Commands
         class Complete: Commands
     }
+
+    fun requireSingleInputStatus(tx:LedgerTransaction): Status?{
+        return requireSingleStatus(tx.inputsOfType<AgreementState>(),"All inputs of type AgreementState must have the same status.")
+    }
+
+    fun requireSingleOutputStatus(tx:LedgerTransaction): Status?{
+        return requireSingleStatus(tx.outputsOfType<AgreementState>(), "All outputs of type AgreementState must have the same status.")
+    }
+
+    //todo: make generic?
+    fun requireSingleStatus(states: List<AgreementState>, error: String): Status?{
+        val statuses = states.map {it.status::class.java}.distinct()
+        requireThat {
+            error using ( statuses.size <= 1)}
+        var status: Status? = null
+        if(states.isNotEmpty()) status = states.first().status
+        return status
+
+    }
+
+
 }
