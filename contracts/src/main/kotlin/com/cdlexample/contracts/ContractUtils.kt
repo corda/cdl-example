@@ -6,7 +6,10 @@ import net.corda.core.contracts.ContractState
 
 
 
-class Path(val command: CommandData, val outputStatus: Status?){
+class Path(val command: CommandData,
+           val outputStatus: Status?,
+           val additionalInputs: Set<Class<out ContractState>> = setOf(),
+           val additionalOutputs: Set<Class<out ContractState>> = setOf()){
 
     override fun equals(other: Any?): Boolean {
         if(other == null) return false
@@ -18,13 +21,8 @@ class Path(val command: CommandData, val outputStatus: Status?){
         if (castClass.outputStatus != null && this.outputStatus != null) {
             if (castClass.outputStatus::class.java != this.outputStatus::class.java) return false
         }
+        if (castClass.additionalInputs != this.additionalInputs) return false
+        if (castClass.additionalOutputs != this.additionalOutputs) return false
         return true
     }
-}
-
-
-class additionalPath(val clazz: Class<ContractState>){
-
-    // todo: fill out equals + add in to Path with defaults as an empty list
-    // todo: move into a Contract utils file
 }
