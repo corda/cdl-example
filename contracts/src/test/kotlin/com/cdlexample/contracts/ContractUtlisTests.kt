@@ -1,8 +1,7 @@
 package com.cdlexample.contracts
 
-import com.cdlexample.states.AgreementStatus
-import com.cdlexample.contracts.Path
 import com.cdlexample.states.Status
+import net.corda.core.contracts.BelongsToContract
 import net.corda.core.contracts.CommandData
 import net.corda.core.contracts.Contract
 import net.corda.core.contracts.ContractState
@@ -12,14 +11,22 @@ import org.junit.Test
 
 class ContractUtlisTests(){
 
-    class TestState(override val participants: List<AbstractParty> = listOf()) : ContractState{
+    @BelongsToContract(TestContract::class)
+    class TestStateA(override val participants: List<AbstractParty> = listOf()) : ContractState{
 
         class TestStatus{
-            class Status1: Status
-            class Status2: Status
-            class Status3: Status
+            class StatusA1: Status
+            class StatusA2: Status
         }
     }
+
+    @BelongsToContract(TestContract::class)
+    class TestStateB(override val participants: List<AbstractParty> = listOf()) : ContractState
+
+    @BelongsToContract(TestContract::class)
+    class TestStateC(override val participants: List<AbstractParty> = listOf()) : ContractState
+
+
 
     class TestContract: Contract {
         override fun verify(tx: LedgerTransaction) {
@@ -28,7 +35,6 @@ class ContractUtlisTests(){
         interface Commands: CommandData {
             class Command1: Commands
             class Command2: Commands
-            class Command3: Commands
         }
     }
 
@@ -40,9 +46,9 @@ class ContractUtlisTests(){
 
         // test Command equality
 
-        val path1 = Path(TestContract.Commands.Command1(), TestState.TestStatus.Status1())
-        val path2 = Path(TestContract.Commands.Command1(), TestState.TestStatus.Status1())
-        val path3 = Path(TestContract.Commands.Command2(), TestState.TestStatus.Status1())
+        val path1 = Path(TestContract.Commands.Command1(), TestStateA.TestStatus.StatusA1())
+        val path2 = Path(TestContract.Commands.Command1(), TestStateA.TestStatus.StatusA1())
+        val path3 = Path(TestContract.Commands.Command2(), TestStateA.TestStatus.StatusA1())
 
         assert(path1 == path2)
         assert(path1 !== path3)
@@ -51,9 +57,9 @@ class ContractUtlisTests(){
 
         // test Status Equality
 
-        val path4 = Path(TestContract.Commands.Command1(), TestState.TestStatus.Status1())
-        val path5 = Path(TestContract.Commands.Command1(), TestState.TestStatus.Status1())
-        val path6 = Path(TestContract.Commands.Command1(), TestState.TestStatus.Status2())
+        val path4 = Path(TestContract.Commands.Command1(), TestStateA.TestStatus.StatusA1())
+        val path5 = Path(TestContract.Commands.Command1(), TestStateA.TestStatus.StatusA1())
+        val path6 = Path(TestContract.Commands.Command1(), TestStateA.TestStatus.StatusA2())
         val path7 = Path(TestContract.Commands.Command1(), null)
         val path8 = Path(TestContract.Commands.Command1(), null)
 

@@ -23,7 +23,7 @@ class Path(val command: CommandData, val outputStatus: Status?){
 }
 
 
-class additionalPath(val clazz: Class<ContractState>, val status: Status?){
+class additionalPath(val clazz: Class<ContractState>){
 
     // todo: fill out equals + add in to Path with defaults as an empty list
     // todo: move into a Contract utils file
