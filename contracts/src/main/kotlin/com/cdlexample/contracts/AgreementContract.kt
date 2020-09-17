@@ -15,6 +15,15 @@ class AgreementContract : Contract {
         const val ID = "com.cdlexample.contracts.AgreementContract"
     }
 
+    // Used to indicate the transaction's intent.
+    interface Commands : CommandData {
+        class Propose : Commands
+        class Repropose: Commands
+        class Reject: Commands
+        class Agree: Commands
+        class Complete: Commands
+    }
+
     // A transaction is valid if the verify() function of the contract of all the transaction's input and output states
     // does not throw an exception.
     override fun verify(tx: LedgerTransaction) {
@@ -108,31 +117,35 @@ class AgreementContract : Contract {
     }
 
 
-    class Path(val command: Commands, val outputStatus: Status?){
+//    class Path(val command: Commands, val outputStatus: Status?){
+//
+//        override fun equals(other: Any?): Boolean {
+//            if(other == null) return false
+//            if (other::class.java != this::class.java) return false
+//            val castClass = other as Path
+//            if (castClass.command::class.java != this.command::class.java) return false
+//            if (castClass.outputStatus == null && this.outputStatus != null) return false
+//            if (castClass.outputStatus != null && this.outputStatus == null) return false
+//            if (castClass.outputStatus != null && this.outputStatus != null) {
+//                if (castClass.outputStatus::class.java != this.outputStatus::class.java) return false
+//            }
+//            return true
+//        }
+//    }
+//
+//
+//
+//    class additionalPath(val clazz: Class<ContractState>, val status: Status?){
+//
+//        // todo: fill out equals + add in to Path with defaults as an empty list
+//        // todo: move into a Contract utils file
+//    }
 
-        override fun equals(other: Any?): Boolean {
-            if(other == null) return false
-            if (other::class.java != this::class.java) return false
-            val castClass = other as Path
-            if (castClass.command::class.java != this.command::class.java) return false
-            if (castClass.outputStatus == null && this.outputStatus != null) return false
-            if (castClass.outputStatus != null && this.outputStatus == null) return false
-            if (castClass.outputStatus != null && this.outputStatus != null) {
-                if (castClass.outputStatus::class.java != this.outputStatus::class.java) return false
-            }
-            return true
-        }
-    }
 
 
-    // Used to indicate the transaction's intent.
-    interface Commands : CommandData {
-        class Propose : Commands
-        class Repropose: Commands
-        class Reject: Commands
-        class Agree: Commands
-        class Complete: Commands
-    }
+
+
+
 
     fun requireSingleInputStatus(tx:LedgerTransaction): Status?{
         return requireSingleStatus(tx.inputsOfType<AgreementState>(),"All inputs of type AgreementState must have the same status.")
@@ -142,7 +155,7 @@ class AgreementContract : Contract {
         return requireSingleStatus(tx.outputsOfType<AgreementState>(), "All outputs of type AgreementState must have the same status.")
     }
 
-    //todo: make generic?
+    //todo: make generic + move in to a contract utils file
     fun requireSingleStatus(states: List<AgreementState>, error: String): Status?{
         val statuses = states.map {it.status::class.java}.distinct()
         requireThat {

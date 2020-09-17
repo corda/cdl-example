@@ -34,8 +34,8 @@ interface AgreementStatus {
 
 }
 
-@CordaSerializable
-interface Status
+//@CordaSerializable
+//interface Status
 
 
 //data class Status<T: Status>(val value: T)

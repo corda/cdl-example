@@ -272,53 +272,8 @@ class AgreementContractTests {
                 command(alice.publicKey, AgreementContract.Commands.Agree())
                 `fails with`("When the input Status is Agree, the path must be Complete -> null.")
             }
-
-
-
-
-
         }
-
     }
-
-
-    @Test
-    fun `check Path equality method`() {
-
-        // test Command equality
-
-        val path1 = AgreementContract.Path(AgreementContract.Commands.Agree(), AgreementStatus.Proposed())
-        val path2 = AgreementContract.Path(AgreementContract.Commands.Agree(), AgreementStatus.Proposed())
-        val path3 = AgreementContract.Path(AgreementContract.Commands.Propose(), AgreementStatus.Proposed())
-
-        assert(path1 == path2)
-        assert(path1 !== path3)
-        assert(path2 == path1)
-        assert(path3 != path1)
-
-        // test Status Equality
-        val path4 = AgreementContract.Path(AgreementContract.Commands.Agree(), AgreementStatus.Proposed())
-        val path5 = AgreementContract.Path(AgreementContract.Commands.Agree(), AgreementStatus.Proposed())
-        val path6  = AgreementContract.Path(AgreementContract.Commands.Agree(), AgreementStatus.Agreed())
-        val path7 = AgreementContract.Path(AgreementContract.Commands.Agree(), null)
-        val path8 = AgreementContract.Path(AgreementContract.Commands.Agree(), null)
-
-        assert(path4 == path5)
-        assert(path5 == path4)
-        assert(path4 != path6)
-        assert(path6 != path4)
-        assert(path4 != path7)
-        assert(path7 !== path4)
-        assert(path7 == path8)
-        assert(path8 == path7)
-
-        // check both Command and Status mismatched
-
-        assert(path3 != path7)
-        assert(path7 != path3)
-
-    }
-
 
     @Test
     fun `check universal constraints`(){
