@@ -3,6 +3,7 @@ package com.cdlexample.contracts
 import com.cdlexample.states.AgreementState
 import com.cdlexample.states.AgreementStatus.*
 import com.cdlexample.states.Status
+import com.cdlexample.states.StatusState
 import net.corda.core.contracts.*
 import net.corda.core.transactions.LedgerTransaction
 
@@ -122,13 +123,5 @@ class AgreementContract : Contract {
 
     fun requireSingleOutputStatus(tx:LedgerTransaction): Status?{
         return requireSingleStatus(tx.outputsOfType<AgreementState>(), "All outputs of type AgreementState must have the same status.")
-    }
-
-    //todo: make generic + move in to a contract utils file
-    fun requireSingleStatus(states: List<AgreementState>, error: String): Status?{
-        val statuses = states.map {it.status}.distinct()
-        requireThat {
-            error using ( statuses.size <= 1)}
-        return if (states.isNotEmpty()) states.first().status else null
     }
 }
