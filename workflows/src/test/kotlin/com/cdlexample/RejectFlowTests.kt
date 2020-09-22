@@ -9,6 +9,7 @@ import com.cdlexample.states.AgreementStatus
 import net.corda.core.contracts.Amount
 import net.corda.core.contracts.StateRef
 import net.corda.core.node.services.queryBy
+import net.corda.core.node.services.vault.QueryCriteria
 import net.corda.core.utilities.getOrThrow
 import net.corda.testing.node.MockNetwork
 import net.corda.testing.node.MockNetworkParameters
@@ -47,24 +48,29 @@ class RejectFlowTests {
     @Test
     fun `propose flow test`() {
 
+        // Create Proposal
         val flow = ProposeFlow(partyA, partyB, "Some Sausages", Amount(10, Currency.getInstance("GBP")), partyA, partyB)
 
         val future = a.startFlow(flow)
         network.runNetwork()
         val result = future.getOrThrow()
 
-        val proposedStateRef = StateRef(result.tx.id, 0)
+
+        // Create Rejection
+        val proposedStateRef = StateRef(result.id, 0)
         val flow2 = RejectFlow(proposedStateRef, "I don't like Sausages")
 
         val future2 = b.startFlow(flow2)
         network.runNetwork()
         val result2 = future2.getOrThrow()
 
-        val outputState = result2.coreTransaction.outputStates.single() as AgreementState
+
+        // check rejection in the other party's vault
+        val rejectedStateRef = StateRef(result2.id, 0)
+        val queryCriteria = QueryCriteria.VaultQueryCriteria(stateRefs = listOf(rejectedStateRef))
+        val outputState = b.services.vaultService.queryBy(AgreementState::class.java, queryCriteria).states.single().state.data
 
         assert(outputState.status == AgreementStatus.REJECTED)
         assert(outputState.rejectionReason == "I don't like Sausages")
-
-
     }
 }
