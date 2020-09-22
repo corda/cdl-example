@@ -129,9 +129,14 @@ class AgreementContract : Contract {
         val statuses = states.map {it.status}.distinct()
         requireThat {
             error using ( statuses.size <= 1)}
-        var status: Status? = null
-        if(states.isNotEmpty()) status = states.first().status
-        return status
+
+        // todoi: check for more efficient way of writing this
+//        var status: Status? = null
+//        if(states.isNotEmpty()) status = states.first().status
+//        return status
+
+        return if (states.isNotEmpty()) states.first().status else null
+
 
     }
 
