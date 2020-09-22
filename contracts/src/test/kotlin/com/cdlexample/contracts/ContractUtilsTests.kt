@@ -46,9 +46,9 @@ class ContractUtilsTests(){
 
         // test Command equality
 
-        val path1 = Path(TestContract.Commands.Command1(), TestStateA.TestStatus.STATUSA1)
-        val path2 = Path(TestContract.Commands.Command1(), TestStateA.TestStatus.STATUSA1)
-        val path3 = Path(TestContract.Commands.Command2(), TestStateA.TestStatus.STATUSA1)
+        val path1 = Path(TestContract.Commands.Command1()::class.java, TestStateA.TestStatus.STATUSA1)
+        val path2 = Path(TestContract.Commands.Command1()::class.java, TestStateA.TestStatus.STATUSA1)
+        val path3 = Path(TestContract.Commands.Command2()::class.java, TestStateA.TestStatus.STATUSA1)
 
         assert(path1 == path2)
         assert(path1 !== path3)
@@ -57,11 +57,11 @@ class ContractUtilsTests(){
 
         // test Status Equality
 
-        val path4 = Path(TestContract.Commands.Command1(), TestStateA.TestStatus.STATUSA1)
-        val path5 = Path(TestContract.Commands.Command1(), TestStateA.TestStatus.STATUSA1)
-        val path6 = Path(TestContract.Commands.Command1(), TestStateA.TestStatus.STATUSA2)
-        val path7 = Path(TestContract.Commands.Command1(), null)
-        val path8 = Path(TestContract.Commands.Command1(), null)
+        val path4 = Path(TestContract.Commands.Command1()::class.java, TestStateA.TestStatus.STATUSA1)
+        val path5 = Path(TestContract.Commands.Command1()::class.java, TestStateA.TestStatus.STATUSA1)
+        val path6 = Path(TestContract.Commands.Command1()::class.java, TestStateA.TestStatus.STATUSA2)
+        val path7 = Path(TestContract.Commands.Command1()::class.java, null)
+        val path8 = Path(TestContract.Commands.Command1()::class.java, null)
 
         assert(path4 == path5)
         assert(path5 == path4)
@@ -84,9 +84,9 @@ class ContractUtilsTests(){
 
 
         // Test additionalInput equality
-        val path1 = Path(TestContract.Commands.Command1(), TestStateA.TestStatus.STATUSA1, setOf(TestStateB::class.java))
-        val path2 = Path(TestContract.Commands.Command1(), TestStateA.TestStatus.STATUSA1, setOf(TestStateB::class.java))
-        val path3 = Path(TestContract.Commands.Command1(), TestStateA.TestStatus.STATUSA1, setOf(TestStateC::class.java))
+        val path1 = Path(TestContract.Commands.Command1()::class.java, TestStateA.TestStatus.STATUSA1, setOf(TestStateB::class.java))
+        val path2 = Path(TestContract.Commands.Command1()::class.java, TestStateA.TestStatus.STATUSA1, setOf(TestStateB::class.java))
+        val path3 = Path(TestContract.Commands.Command1()::class.java, TestStateA.TestStatus.STATUSA1, setOf(TestStateC::class.java))
 
         assert(path1 == path2)
         assert(path1 !== path3)
@@ -94,9 +94,9 @@ class ContractUtilsTests(){
         assert(path3 != path1)
 
         // Test additionalOutput equality
-        val path4 = Path(TestContract.Commands.Command1(), TestStateA.TestStatus.STATUSA1, additionalOutputs = setOf(TestStateB::class.java))
-        val path5 = Path(TestContract.Commands.Command1(), TestStateA.TestStatus.STATUSA1, additionalOutputs = setOf(TestStateB::class.java))
-        val path6 = Path(TestContract.Commands.Command1(), TestStateA.TestStatus.STATUSA1, additionalOutputs = setOf(TestStateC::class.java))
+        val path4 = Path(TestContract.Commands.Command1()::class.java, TestStateA.TestStatus.STATUSA1, additionalOutputs = setOf(TestStateB::class.java))
+        val path5 = Path(TestContract.Commands.Command1()::class.java, TestStateA.TestStatus.STATUSA1, additionalOutputs = setOf(TestStateB::class.java))
+        val path6 = Path(TestContract.Commands.Command1()::class.java, TestStateA.TestStatus.STATUSA1, additionalOutputs = setOf(TestStateC::class.java))
 
         assert(path4 == path5)
         assert(path4 !== path6)
@@ -105,9 +105,9 @@ class ContractUtilsTests(){
 
         // Test Both
 
-        val path7 = Path(TestContract.Commands.Command1(), TestStateA.TestStatus.STATUSA1, setOf(TestStateB::class.java),setOf(TestStateB::class.java))
-        val path8 = Path(TestContract.Commands.Command1(), TestStateA.TestStatus.STATUSA1, setOf(TestStateB::class.java),setOf(TestStateB::class.java))
-        val path9 = Path(TestContract.Commands.Command1(), TestStateA.TestStatus.STATUSA1, setOf(TestStateC::class.java),setOf(TestStateC::class.java))
+        val path7 = Path(TestContract.Commands.Command1()::class.java, TestStateA.TestStatus.STATUSA1, setOf(TestStateB::class.java),setOf(TestStateB::class.java))
+        val path8 = Path(TestContract.Commands.Command1()::class.java, TestStateA.TestStatus.STATUSA1, setOf(TestStateB::class.java),setOf(TestStateB::class.java))
+        val path9 = Path(TestContract.Commands.Command1()::class.java, TestStateA.TestStatus.STATUSA1, setOf(TestStateC::class.java),setOf(TestStateC::class.java))
 
         assert(path7 == path8)
         assert(path7 !== path9)

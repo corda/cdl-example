@@ -41,19 +41,19 @@ class AgreementContract : Contract {
         val inputStatus = requireSingleInputStatus(tx)
         val outputStatus = requireSingleOutputStatus(tx)
 
-        val txPath =  Path(command.value, outputStatus)
+        val txPath =  Path(command.value::class.java, outputStatus)
         when (inputStatus) {
             null -> {
                 val pathList = listOf(
-                        Path(Commands.Propose(), PROPOSED))
+                        Path(Commands.Propose()::class.java, PROPOSED))
                 requireThat {
                     "When there is no input AgreementState the path must be Propose -> Proposed." using (pathList.contains(txPath))
                 }
             }
             PROPOSED -> {
                 val pathList = listOf(
-                        Path(Commands.Reject(), REJECTED),
-                        Path(Commands.Agree(), AGREED)
+                        Path(Commands.Reject()::class.java, REJECTED),
+                        Path(Commands.Agree()::class.java, AGREED)
                 )
                 requireThat {
                     "When the input Status is Proposed, the path must be Reject -> Rejected, or Agree -> Agreed." using (pathList.contains(txPath))
@@ -61,14 +61,14 @@ class AgreementContract : Contract {
             }
             REJECTED -> {
                 val pathList = listOf(
-                        Path(Commands.Repropose(), PROPOSED))
+                        Path(Commands.Repropose()::class.java, PROPOSED))
                 requireThat {
                     "When the input Status is Rejected, the path must be Repropose -> Proposed." using (pathList.contains(txPath))
                 }
             }
             AGREED -> {
                 val pathList = listOf(
-                        Path(Commands.Complete(), null)
+                        Path(Commands.Complete()::class.java, null)
                 )
                 requireThat {
                     "When the input Status is Agree, the path must be Complete -> null." using (pathList.contains(txPath))
@@ -129,16 +129,6 @@ class AgreementContract : Contract {
         val statuses = states.map {it.status}.distinct()
         requireThat {
             error using ( statuses.size <= 1)}
-
-        // todoi: check for more efficient way of writing this
-//        var status: Status? = null
-//        if(states.isNotEmpty()) status = states.first().status
-//        return status
-
         return if (states.isNotEmpty()) states.first().status else null
-
-
     }
-
-
 }
