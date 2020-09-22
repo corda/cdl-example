@@ -12,7 +12,7 @@ import java.util.*
 // *********
 @BelongsToContract(AgreementContract::class)
 data class AgreementState(override val status: AgreementStatus,
-        val buyer: Party,
+                          val buyer: Party,
                           val seller: Party,
                           val goods: String,
                           val price: Amount<Currency>,
