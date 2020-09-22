@@ -8,7 +8,6 @@ import net.corda.core.contracts.Amount
 import net.corda.core.contracts.Command
 import net.corda.core.flows.*
 import net.corda.core.identity.Party
-import net.corda.core.node.ServiceHub
 import net.corda.core.transactions.SignedTransaction
 import net.corda.core.transactions.TransactionBuilder
 import java.util.*
@@ -29,7 +28,6 @@ class ProposeFlow(val buyer: Party,
         val tx = TransactionBuilder(notary)
 
         val proposeState = AgreementState(AgreementStatus.PROPOSED, buyer, seller, goods, price, proposer, consenter)
-
         val command = Command(AgreementContract.Commands.Propose(), proposer.owningKey)
 
         tx.addCommand(command)
@@ -38,24 +36,20 @@ class ProposeFlow(val buyer: Party,
         tx.verify(serviceHub)
 
         val signedTx = serviceHub.signInitialTransaction(tx)
+
         val counterparty = if (buyer == ourIdentity) seller else buyer
         val session = initiateFlow(counterparty)
 
         return subFlow(FinalityFlow(signedTx, listOf(session)))
-
-
     }
 }
 
 @InitiatedBy(ProposeFlow::class)
 class ProposeResponderFlow(val counterpartySession: FlowSession): FlowLogic<SignedTransaction>(){
 
-
     @Suspendable
     override fun call(): SignedTransaction{
-
         return subFlow(ReceiveFinalityFlow(counterpartySession))
-
     }
 }
 
