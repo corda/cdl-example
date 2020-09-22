@@ -45,28 +45,28 @@ class AgreementContract : Contract {
         when (inputStatus) {
             null -> {
                 val pathList = listOf(
-                        Path(Commands.Propose(), Proposed()))
+                        Path(Commands.Propose(), PROPOSED))
                 requireThat {
                     "When there is no input AgreementState the path must be Propose -> Proposed." using (pathList.contains(txPath))
                 }
             }
-            is Proposed -> {
+            PROPOSED -> {
                 val pathList = listOf(
-                        Path(Commands.Reject(), Rejected()),
-                        Path(Commands.Agree(), Agreed())
+                        Path(Commands.Reject(), REJECTED),
+                        Path(Commands.Agree(), AGREED)
                 )
                 requireThat {
                     "When the input Status is Proposed, the path must be Reject -> Rejected, or Agree -> Agreed." using (pathList.contains(txPath))
                 }
             }
-            is Rejected -> {
+            REJECTED -> {
                 val pathList = listOf(
-                        Path(Commands.Repropose(), Proposed()))
+                        Path(Commands.Repropose(), PROPOSED))
                 requireThat {
                     "When the input Status is Rejected, the path must be Repropose -> Proposed." using (pathList.contains(txPath))
                 }
             }
-            is Agreed -> {
+            AGREED -> {
                 val pathList = listOf(
                         Path(Commands.Complete(), null)
                 )
@@ -98,20 +98,20 @@ class AgreementContract : Contract {
         for (s in allStates) {
 
             when(s.status){
-                is Proposed -> {
+                PROPOSED -> {
                     requireThat {
                         "When status is Proposed rejectionReason must be null" using (s.rejectionReason == null)
                         "When status is Rejected rejectedBy must be null" using (s.rejectedBy == null)
                     }
                 }
-                is Rejected -> {
+                REJECTED -> {
                     requireThat {
                         "When status is Rejected rejectionReason must not be null" using (s.rejectionReason != null)
                         "When status is Rejected rejectedBy must not be null" using (s.rejectedBy != null)
                     }
 
                 }
-                is Agreed -> {}
+                AGREED -> {}
             }
         }
     }
@@ -126,7 +126,7 @@ class AgreementContract : Contract {
 
     //todo: make generic + move in to a contract utils file
     fun requireSingleStatus(states: List<AgreementState>, error: String): Status?{
-        val statuses = states.map {it.status::class.java}.distinct()
+        val statuses = states.map {it.status}.distinct()
         requireThat {
             error using ( statuses.size <= 1)}
         var status: Status? = null

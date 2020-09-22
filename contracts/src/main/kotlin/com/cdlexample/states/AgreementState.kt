@@ -11,7 +11,7 @@ import java.util.*
 // * State *
 // *********
 @BelongsToContract(AgreementContract::class)
-data class AgreementState(val status: Status,
+data class AgreementState(val status: AgreementStatus,
         val buyer: Party,
                           val seller: Party,
                           val goods: String,
@@ -27,12 +27,20 @@ data class AgreementState(val status: Status,
 }
 
 
-interface AgreementStatus {
-    class Proposed: Status
-    class Rejected: Status
-    class Agreed: Status
 
+enum class AgreementStatus: Status{
+    PROPOSED,
+    REJECTED,
+    AGREED
 }
+
+
+//interface AgreementStatus {
+//    class Proposed: Status
+//    class Rejected: Status
+//    class Agreed: Status
+//
+//}
 
 //@CordaSerializable
 //interface Status

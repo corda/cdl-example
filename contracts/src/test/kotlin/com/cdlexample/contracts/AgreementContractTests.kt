@@ -21,13 +21,13 @@ class AgreementContractTests {
     @Test
     fun `check the happy path`() {
 
-        val proposed1 = AgreementState(AgreementStatus.Proposed(),
+        val proposed1 = AgreementState(AgreementStatus.PROPOSED,
                 alice.party, bob.party, "One bunch of Bananas", Amount(10, Currency.getInstance("GBP")), alice.party, bob.party)
-        val rejected = AgreementState(AgreementStatus.Rejected(),
+        val rejected = AgreementState(AgreementStatus.REJECTED,
                 alice.party, bob.party, "One bunch of Bananas", Amount(10, Currency.getInstance("GBP")), alice.party, bob.party, "Run out of Bananas", alice.party)
-        val proposed2 = AgreementState(AgreementStatus.Proposed(),
+        val proposed2 = AgreementState(AgreementStatus.PROPOSED,
                 alice.party, bob.party, "One bag of grapes", Amount(8, Currency.getInstance("GBP")), bob.party, alice.party)
-        val agreed = AgreementState(AgreementStatus.Agreed(),
+        val agreed = AgreementState(AgreementStatus.AGREED,
                 alice.party, bob.party, "One bag of grapes", Amount(8, Currency.getInstance("GBP")), bob.party, alice.party)
 
         ledgerServices.ledger {
@@ -65,10 +65,10 @@ class AgreementContractTests {
     @Test
     fun `check all inputs of type AgreementState have the same Status`() {
 
-        val input1 = AgreementState(AgreementStatus.Proposed(),
+        val input1 = AgreementState(AgreementStatus.PROPOSED,
                 alice.party, bob.party, "Some grapes", Amount(10, Currency.getInstance("GBP")), alice.party, bob.party)
-        val input2 = AgreementState(AgreementStatus.Proposed(), alice.party, bob.party, "Some more grapes", Amount(10, Currency.getInstance("GBP")), alice.party, bob.party)
-        val input3 = AgreementState(AgreementStatus.Agreed(), alice.party, bob.party, "yet more grapes", Amount(10, Currency.getInstance("GBP")), alice.party, bob.party)
+        val input2 = AgreementState(AgreementStatus.PROPOSED, alice.party, bob.party, "Some more grapes", Amount(10, Currency.getInstance("GBP")), alice.party, bob.party)
+        val input3 = AgreementState(AgreementStatus.AGREED, alice.party, bob.party, "yet more grapes", Amount(10, Currency.getInstance("GBP")), alice.party, bob.party)
 
         ledgerServices.ledger {
             transaction {
@@ -85,9 +85,9 @@ class AgreementContractTests {
     @Test
     fun `check all outputs of type AgreementState have the same Status`() {
 
-        val output1 = AgreementState(AgreementStatus.Proposed(), alice.party, bob.party, "Some grapes", Amount(10, Currency.getInstance("GBP")), alice.party, bob.party)
-        val output2 = AgreementState(AgreementStatus.Proposed(), alice.party, bob.party, "Some more grapes", Amount(10, Currency.getInstance("GBP")), alice.party, bob.party)
-        val output3 = AgreementState(AgreementStatus.Agreed(), alice.party, bob.party, "yet more grapes", Amount(10, Currency.getInstance("GBP")), alice.party, bob.party)
+        val output1 = AgreementState(AgreementStatus.PROPOSED, alice.party, bob.party, "Some grapes", Amount(10, Currency.getInstance("GBP")), alice.party, bob.party)
+        val output2 = AgreementState(AgreementStatus.PROPOSED, alice.party, bob.party, "Some more grapes", Amount(10, Currency.getInstance("GBP")), alice.party, bob.party)
+        val output3 = AgreementState(AgreementStatus.AGREED, alice.party, bob.party, "yet more grapes", Amount(10, Currency.getInstance("GBP")), alice.party, bob.party)
 
         ledgerServices.ledger {
             transaction {
@@ -104,11 +104,11 @@ class AgreementContractTests {
     @Test
     fun `check non happy transition paths`() {
 
-        val proposedState = AgreementState(AgreementStatus.Proposed(),
+        val proposedState = AgreementState(AgreementStatus.PROPOSED,
                 alice.party, bob.party, "Some grapes", Amount(10, Currency.getInstance("GBP")), alice.party, bob.party)
-        val rejectedState = AgreementState(AgreementStatus.Rejected(),
+        val rejectedState = AgreementState(AgreementStatus.REJECTED,
                 alice.party, bob.party, "Some more grapes", Amount(10, Currency.getInstance("GBP")), alice.party, bob.party, "I don't like grapes", alice.party)
-        val agreedState = AgreementState(AgreementStatus.Agreed(),
+        val agreedState = AgreementState(AgreementStatus.AGREED,
                 alice.party, bob.party, "Some more grapes", Amount(10, Currency.getInstance("GBP")), alice.party, bob.party)
 
         ledgerServices.ledger {
@@ -278,10 +278,10 @@ class AgreementContractTests {
     @Test
     fun `check universal constraints`(){
 
-        val state1 = AgreementState(AgreementStatus.Proposed(), alice.party, alice.party, "Some grapes", Amount(10, Currency.getInstance("GBP")), alice.party, bob.party)
-        val state2 = AgreementState(AgreementStatus.Proposed(), alice.party, bob.party, "Some grapes", Amount(10, Currency.getInstance("GBP")), charlie.party, bob.party)
-        val state3 = AgreementState(AgreementStatus.Proposed(), alice.party, bob.party, "Some grapes", Amount(10, Currency.getInstance("GBP")), alice.party, charlie.party)
-        val state4 = AgreementState(AgreementStatus.Proposed(), alice.party, bob.party, "Some grapes", Amount(10, Currency.getInstance("GBP")), alice.party, alice.party)
+        val state1 = AgreementState(AgreementStatus.PROPOSED, alice.party, alice.party, "Some grapes", Amount(10, Currency.getInstance("GBP")), alice.party, bob.party)
+        val state2 = AgreementState(AgreementStatus.PROPOSED, alice.party, bob.party, "Some grapes", Amount(10, Currency.getInstance("GBP")), charlie.party, bob.party)
+        val state3 = AgreementState(AgreementStatus.PROPOSED, alice.party, bob.party, "Some grapes", Amount(10, Currency.getInstance("GBP")), alice.party, charlie.party)
+        val state4 = AgreementState(AgreementStatus.PROPOSED, alice.party, bob.party, "Some grapes", Amount(10, Currency.getInstance("GBP")), alice.party, alice.party)
 
 
 
@@ -314,20 +314,20 @@ class AgreementContractTests {
     @Test
     fun `check status Constraints`() {
 
-        val proposed1 = AgreementState(AgreementStatus.Proposed(),
+        val proposed1 = AgreementState(AgreementStatus.PROPOSED,
                 alice.party, bob.party, "Some grapes", Amount(10, Currency.getInstance("GBP")), alice.party, bob.party)
-        val proposed2 = AgreementState(AgreementStatus.Proposed(),
+        val proposed2 = AgreementState(AgreementStatus.PROPOSED,
                 alice.party, bob.party, "Some grapes", Amount(10, Currency.getInstance("GBP")), alice.party, bob.party, "I don't like grapes")
-        val proposed3 = AgreementState(AgreementStatus.Proposed(),
+        val proposed3 = AgreementState(AgreementStatus.PROPOSED,
                 alice.party, bob.party, "Some grapes", Amount(10, Currency.getInstance("GBP")), alice.party, bob.party, rejectedBy = alice.party)
-        val proposed4 = AgreementState(AgreementStatus.Proposed(),
+        val proposed4 = AgreementState(AgreementStatus.PROPOSED,
                 alice.party, bob.party, "Some grapes", Amount(10, Currency.getInstance("GBP")), alice.party, bob.party, "I don't like grapes", alice.party)
 
-        val rejected1 = AgreementState(AgreementStatus.Rejected(),
+        val rejected1 = AgreementState(AgreementStatus.REJECTED,
                 alice.party, bob.party, "Some more grapes", Amount(10, Currency.getInstance("GBP")), alice.party, bob.party, "I don't like grapes")
-        val rejected2 = AgreementState(AgreementStatus.Rejected(),
+        val rejected2 = AgreementState(AgreementStatus.REJECTED,
                 alice.party, bob.party, "Some more grapes", Amount(10, Currency.getInstance("GBP")), alice.party, bob.party, rejectedBy = alice.party)
-        val rejected3 = AgreementState(AgreementStatus.Rejected(),
+        val rejected3 = AgreementState(AgreementStatus.REJECTED,
                 alice.party, bob.party, "Some more grapes", Amount(10, Currency.getInstance("GBP")), alice.party, bob.party)
 
 

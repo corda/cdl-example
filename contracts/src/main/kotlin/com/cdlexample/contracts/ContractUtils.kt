@@ -26,3 +26,4 @@ class Path(val command: CommandData,
         return true
     }
 }
+
