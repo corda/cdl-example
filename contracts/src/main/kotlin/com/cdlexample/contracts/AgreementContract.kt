@@ -3,7 +3,6 @@ package com.cdlexample.contracts
 import com.cdlexample.states.AgreementState
 import com.cdlexample.states.AgreementStatus.*
 import com.cdlexample.states.Status
-import com.cdlexample.states.StatusState
 import net.corda.core.contracts.*
 import net.corda.core.transactions.LedgerTransaction
 
@@ -32,6 +31,9 @@ class AgreementContract : Contract {
         verifyTransitionConstraints(tx)
         verifyUniversalConstraints(tx)
         verifyStatusConstraints(tx)
+        verifyLinearIDConstraints(tx)
+        verifySigningConstraints(tx)
+        verifyCommandConstraints(tx)
 
     }
 
@@ -42,40 +44,56 @@ class AgreementContract : Contract {
         val inputStatus = requireSingleInputStatus(tx)
         val outputStatus = requireSingleOutputStatus(tx)
 
-        val txPath =  Path(command.value::class.java, outputStatus)
-        when (inputStatus) {
-            null -> {
-                val pathList = listOf(
-                        Path(Commands.Propose()::class.java, PROPOSED))
-                requireThat {
-                    "When there is no input AgreementState the path must be Propose -> Proposed." using (pathList.contains(txPath))
-                }
-            }
-            PROPOSED -> {
-                val pathList = listOf(
-                        Path(Commands.Reject()::class.java, REJECTED),
-                        Path(Commands.Agree()::class.java, AGREED)
-                )
-                requireThat {
-                    "When the input Status is Proposed, the path must be Reject -> Rejected, or Agree -> Agreed." using (pathList.contains(txPath))
-                }
-            }
-            REJECTED -> {
-                val pathList = listOf(
-                        Path(Commands.Repropose()::class.java, PROPOSED))
-                requireThat {
-                    "When the input Status is Rejected, the path must be Repropose -> Proposed." using (pathList.contains(txPath))
-                }
-            }
-            AGREED -> {
-                val pathList = listOf(
-                        Path(Commands.Complete()::class.java, null)
-                )
-                requireThat {
-                    "When the input Status is Agree, the path must be Complete -> null." using (pathList.contains(txPath))
-                }
-            }
-        }
+        val inputStates = tx.inputsOfType<AgreementState>()
+        val otherInputStates = tx.inputStates - inputStates
+        val outputStates = tx.outputsOfType<AgreementState>()
+        val otherOutputStates = tx.inputStates - outputStates
+
+
+
+        val txPath =  Path(command.value::class.java, outputStatus, inputStates.size, outputStates.size)
+
+
+
+
+
+
+
+
+//        when (inputStatus) {
+//            null -> {
+//                val pathConstraintList = listOf(
+//                        PathConstraint(Commands.Propose()::class.java, PROPOSED, Multiplicity(0))
+//                )
+//                requireThat {
+//                    "Transaction Path not allowed for input Status $inputStatus" using (verifyPath(txPath, pathConstraintList))
+//                }
+//            }
+//            PROPOSED -> {
+//                val pathList = listOf(
+//                        PathConstraint(Commands.Reject()::class.java, REJECTED),
+//                        PathConstraint(Commands.Agree()::class.java, AGREED)
+//                )
+//                requireThat {
+//                    "When the input Status is Proposed, the path must be Reject -> Rejected, or Agree -> Agreed." using (true)
+//                }
+//            }
+//            REJECTED -> {
+//                val pathList = listOf(
+//                        PathConstraint(Commands.Repropose()::class.java, PROPOSED))
+//                requireThat {
+//                    "When the input Status is Rejected, the path must be Repropose -> Proposed." using (true)
+//                }
+//            }
+//            AGREED -> {
+//                val pathList = listOf(
+//                        PathConstraint(Commands.Complete()::class.java, null, multiplicityOut = Multiplicity(0))
+//                )
+//                requireThat {
+//                    "When the input Status is Agree, the path must be Complete -> null." using (true)
+//                }
+//            }
+//        }
     }
 
     fun verifyUniversalConstraints(tx: LedgerTransaction){
@@ -116,6 +134,18 @@ class AgreementContract : Contract {
             }
         }
     }
+
+    fun verifyLinearIDConstraints(tx: LedgerTransaction){}
+
+    fun verifySigningConstraints(tx: LedgerTransaction){}
+
+    fun verifyCommandConstraints(tx: LedgerTransaction){}
+
+
+
+
+
+
 
     fun requireSingleInputStatus(tx:LedgerTransaction): Status?{
         return requireSingleStatus(tx.inputsOfType<AgreementState>(),"All inputs of type AgreementState must have the same status.")
