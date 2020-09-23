@@ -4,14 +4,14 @@ import com.cdlexample.states.Status
 import com.cdlexample.states.StatusState
 import net.corda.core.contracts.*
 
+// todo: consider if these classes shoudl be dta classes or not
 
 data class Path(val commandClass: Class<out CommandData>,
                 val outputStatus: Status?,
                 val numberOfInputStates: Int,
                 val numberOfOutputStates: Int,
                 val additionalInputs: Set<AdditionalStates> = setOf(),
-                val additionalOutputs: Set<AdditionalStates> = setOf()){
-}
+                val additionalOutputs: Set<AdditionalStates> = setOf())
 
 data class AdditionalStates(val type: Class<out ContractState>, val numberOfStates: Int)
 
@@ -37,8 +37,6 @@ class PathConstraint(val commandClass: Class<out CommandData>,
     infix fun doesNotAllow(p: Path): Boolean {
         return !this.allows(p)
     }
-
-
 }
 
 data class Multiplicity(val from: Int = 1,
@@ -55,7 +53,6 @@ data class Multiplicity(val from: Int = 1,
     }
 }
 
-
 fun verifyPath(p: Path, pathConstraintList: List<PathConstraint>): Boolean{
 
     for (pc in pathConstraintList) {
@@ -63,13 +60,6 @@ fun verifyPath(p: Path, pathConstraintList: List<PathConstraint>): Boolean{
     }
     return false
 }
-
-
-
-
-
-// todo, multiplicities type as an enum ??, with exact number as optional field
-
 
 fun <T: StatusState>requireSingleStatus (states: List<T>, error: String): Status?{
     val statuses = states.map {it.status}.distinct()

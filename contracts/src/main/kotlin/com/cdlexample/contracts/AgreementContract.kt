@@ -64,7 +64,7 @@ class AgreementContract : Contract {
                     PathConstraint(Commands.Repropose()::class.java, PROPOSED)
             ),
             AGREED to listOf(
-                PathConstraint(Commands.Complete()::class.java, null, multiplicityOut = Multiplicity(0))
+                    PathConstraint(Commands.Complete()::class.java, null, multiplicityOut = Multiplicity(0))
             )
         )
 
@@ -94,7 +94,7 @@ class AgreementContract : Contract {
     fun verifyStatusConstraints(tx: LedgerTransaction){
         val allStates = tx.inputsOfType<AgreementState>() + tx.outputsOfType<AgreementState>()
 
-        // Note, in kotlin non-nullable properties must be populated, hence only need to check the nullable properties
+        // Note, in kotlin non-nullable properties must be populated, hence only need to check the nullable properties of the AgreementState
         for (s in allStates) {
 
             when(s.status){
@@ -109,7 +109,6 @@ class AgreementContract : Contract {
                         "When status is Rejected rejectionReason must not be null" using (s.rejectionReason != null)
                         "When status is Rejected rejectedBy must not be null" using (s.rejectedBy != null)
                     }
-
                 }
                 AGREED -> {}
             }
