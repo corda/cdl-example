@@ -4,7 +4,7 @@ import com.cdlexample.states.Status
 import com.cdlexample.states.StatusState
 import net.corda.core.contracts.*
 
-// todo: consider if these classes shoudl be dta classes or not
+// todo: consider if these classes should be data classes or not
 
 data class Path(val commandClass: Class<out CommandData>,
                 val outputStatus: Status?,
@@ -19,6 +19,8 @@ class PathConstraint(val commandClass: Class<out CommandData>,
                      val outputStatus: Status?,
                      val multiplicityIn: Multiplicity = Multiplicity(),
                      val multiplicityOut: Multiplicity = Multiplicity(),
+
+                     // todo: these additionalInputs and outputs need to be able to specify a range of numbers of states, ie use a Multiplicity
                      val additionalInputs: Set<AdditionalStates> = setOf(),
                      val additionalOutputs: Set<AdditionalStates> = setOf()){
 
