@@ -41,6 +41,7 @@ class PathConstraint(val commandClass: Class<out CommandData>,
     }
 }
 
+
 data class Multiplicity(val from: Int = 1,
                         val bounded: Boolean = true,
                         val to: Int = from){
