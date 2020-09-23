@@ -49,51 +49,32 @@ class AgreementContract : Contract {
         val outputStates = tx.outputsOfType<AgreementState>()
         val otherOutputStates = tx.inputStates - outputStates
 
-
-
         val txPath =  Path(command.value::class.java, outputStatus, inputStates.size, outputStates.size)
 
 
+        val pathMap = mapOf<Status?, List<PathConstraint>>(
+            null to listOf(
+                    PathConstraint(Commands.Propose()::class.java, PROPOSED, Multiplicity(0))
+            ),
+            PROPOSED to listOf(
+                    PathConstraint(Commands.Reject()::class.java, REJECTED),
+                    PathConstraint(Commands.Agree()::class.java, AGREED)
+            ),
+            REJECTED to listOf(
+                    PathConstraint(Commands.Repropose()::class.java, PROPOSED)
+            ),
+            AGREED to listOf(
+                PathConstraint(Commands.Complete()::class.java, null, multiplicityOut = Multiplicity(0))
+            )
+        )
 
+        val allowedPaths = pathMap[inputStatus]
 
+        requireThat {
+            "Input status must have a list of PathConstraints defined." using (allowedPaths != null)
+            "txPath must be allowed by PathConstraints for inputStatus $inputStatus" using verifyPath(txPath, allowedPaths!!)
+        }
 
-
-
-
-//        when (inputStatus) {
-//            null -> {
-//                val pathConstraintList = listOf(
-//                        PathConstraint(Commands.Propose()::class.java, PROPOSED, Multiplicity(0))
-//                )
-//                requireThat {
-//                    "Transaction Path not allowed for input Status $inputStatus" using (verifyPath(txPath, pathConstraintList))
-//                }
-//            }
-//            PROPOSED -> {
-//                val pathList = listOf(
-//                        PathConstraint(Commands.Reject()::class.java, REJECTED),
-//                        PathConstraint(Commands.Agree()::class.java, AGREED)
-//                )
-//                requireThat {
-//                    "When the input Status is Proposed, the path must be Reject -> Rejected, or Agree -> Agreed." using (true)
-//                }
-//            }
-//            REJECTED -> {
-//                val pathList = listOf(
-//                        PathConstraint(Commands.Repropose()::class.java, PROPOSED))
-//                requireThat {
-//                    "When the input Status is Rejected, the path must be Repropose -> Proposed." using (true)
-//                }
-//            }
-//            AGREED -> {
-//                val pathList = listOf(
-//                        PathConstraint(Commands.Complete()::class.java, null, multiplicityOut = Multiplicity(0))
-//                )
-//                requireThat {
-//                    "When the input Status is Agree, the path must be Complete -> null." using (true)
-//                }
-//            }
-//        }
     }
 
     fun verifyUniversalConstraints(tx: LedgerTransaction){
