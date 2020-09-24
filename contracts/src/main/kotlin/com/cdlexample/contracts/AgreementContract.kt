@@ -2,6 +2,7 @@ package com.cdlexample.contracts
 
 import com.cdlexample.states.AgreementState
 import com.cdlexample.states.AgreementStatus.*
+import com.cdlexample.states.DummyState
 import com.cdlexample.states.Status
 import net.corda.core.contracts.*
 import net.corda.core.transactions.LedgerTransaction
@@ -28,7 +29,7 @@ class AgreementContract : Contract {
     // does not throw an exception.
     override fun verify(tx: LedgerTransaction) {
 
-        verifyTransitionConstraints(tx)
+        verifyPathConstraints<AgreementState>(tx)
         verifyUniversalConstraints(tx)
         verifyStatusConstraints(tx)
         verifyLinearIDConstraints(tx)
@@ -38,21 +39,22 @@ class AgreementContract : Contract {
     }
 
 
-    fun verifyTransitionConstraints(tx: LedgerTransaction){
+    inline fun <reified T: ContractState> verifyPathConstraints(tx: LedgerTransaction){
 
         val command = tx.commands.requireSingleCommand<Commands>()
         val inputStatus = requireSingleInputStatus(tx)
         val outputStatus = requireSingleOutputStatus(tx)
 
-        val inputStates = tx.inputsOfType<AgreementState>()
+        val inputStates = tx.inputsOfType<T>()
         val otherInputStates = tx.inputStates - inputStates
-        val outputStates = tx.outputsOfType<AgreementState>()
+        val outputStates = tx.outputsOfType<T>()
         val otherOutputStates = tx.inputStates - outputStates
 
-        val txPath =  Path<AgreementState>(command.value, outputStatus, inputStates.size, outputStates.size)
+        val txPath =  Path<T>(command.value, outputStatus, inputStates.size, outputStates.size)
 
+        // todo: build txPath builder from transaction
 
-        val pathMap = mapOf<Status?, List<PathConstraint<AgreementState>>>(
+        val pathMap = mapOf<Status?, List<PathConstraint<T>>>(
             null to listOf(
                     PathConstraint(Commands.Propose(), PROPOSED, MultiplicityConstraint(0))
             ),
@@ -74,7 +76,6 @@ class AgreementContract : Contract {
             "Input status must have a list of PathConstraints defined." using (allowedPaths != null)
             "txPath must be allowed by PathConstraints for inputStatus $inputStatus" using verifyPath(txPath, allowedPaths!!)
         }
-
     }
 
     fun verifyUniversalConstraints(tx: LedgerTransaction){

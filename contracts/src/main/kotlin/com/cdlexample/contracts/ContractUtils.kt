@@ -17,6 +17,8 @@ class AdditionalStates(val type: AdditionalStatesType, val clazz: Class<out Cont
 
 enum class AdditionalStatesType {INPUT, OUTPUT, REFERENCE}
 
+
+
 class PathConstraint<T: ContractState>(val command: CommandData,
                      val outputStatus: Status?,
                      val inputMultiplicityConstraint: MultiplicityConstraint = MultiplicityConstraint(),
