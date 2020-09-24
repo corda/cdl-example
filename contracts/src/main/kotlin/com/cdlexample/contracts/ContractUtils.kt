@@ -5,26 +5,25 @@ import com.cdlexample.states.StatusState
 import net.corda.core.contracts.*
 
 // todo: do these need to be locked to State Type? -> could then lock allowed commands
-// todo: show we revert back to Command rather than Command::class.java?
+// todo: how to protect against substituting a different state type with the same stauts. need to lock the Path and Path constraint to a particular state type
 
-class Path(val command: CommandData,
+class Path<T: ContractState>(val command: CommandData,
                 val outputStatus: Status?,
                 val numberOfInputStates: Int,
                 val numberOfOutputStates: Int,
                 val additionalStates: Set<AdditionalStates> = setOf())
 
-
 class AdditionalStates(val type: AdditionalStatesType, val clazz: Class<out ContractState>, val numberOfStates: Int)
 
 enum class AdditionalStatesType {INPUT, OUTPUT, REFERENCE}
 
-class PathConstraint(val command: CommandData,
+class PathConstraint<T: ContractState>(val command: CommandData,
                      val outputStatus: Status?,
                      val inputMultiplicityConstraint: MultiplicityConstraint = MultiplicityConstraint(),
                      val outputMultiplicityConstraint: MultiplicityConstraint = MultiplicityConstraint(),
                      val additionalStatesConstraints: Set<AdditionalStatesConstraint> =  setOf()){
 
-    infix fun allows(p: Path): Boolean{
+    infix fun allows(p: Path<T>): Boolean{
             var allows = true
             if (command::class.java != p.command::class.java) allows = false
             if (outputStatus != p.outputStatus) allows = false
@@ -34,7 +33,7 @@ class PathConstraint(val command: CommandData,
             return allows
     }
 
-    infix fun doesNotAllow(p: Path): Boolean {
+    infix fun doesNotAllow(p: Path<T>): Boolean {
         return !this.allows(p)
     }
 
@@ -78,7 +77,7 @@ class MultiplicityConstraint(val from: Int = 1,
     }
 }
 
-fun verifyPath(p: Path, pathConstraintList: List<PathConstraint>): Boolean{
+fun <T: ContractState> verifyPath(p: Path<T>, pathConstraintList: List<PathConstraint<T>>): Boolean{
 
     for (pc in pathConstraintList) {
         if (pc allows p) return true
