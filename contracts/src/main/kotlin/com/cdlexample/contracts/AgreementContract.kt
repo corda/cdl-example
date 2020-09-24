@@ -54,7 +54,7 @@ class AgreementContract : Contract {
 
         val pathMap = mapOf<Status?, List<PathConstraint>>(
             null to listOf(
-                    PathConstraint(Commands.Propose()::class.java, PROPOSED, Multiplicity(0))
+                    PathConstraint(Commands.Propose()::class.java, PROPOSED, MultiplicityConstraint(0))
             ),
             PROPOSED to listOf(
                     PathConstraint(Commands.Reject()::class.java, REJECTED),
@@ -64,7 +64,7 @@ class AgreementContract : Contract {
                     PathConstraint(Commands.Repropose()::class.java, PROPOSED)
             ),
             AGREED to listOf(
-                    PathConstraint(Commands.Complete()::class.java, null, multiplicityOut = Multiplicity(0))
+                    PathConstraint(Commands.Complete()::class.java, null, outputMultiplicityConstraint = MultiplicityConstraint(0))
             )
         )
 

@@ -43,7 +43,7 @@ class ContractUtilsTests() {
     @Test
     fun `check PathConstraint with default input and output multiplicities`() {
 
-        val pathConstraint = PathConstraint(TestContract.Commands.Command1()::class.java, TestStateA.TestStatus.STATUSA1, Multiplicity(), Multiplicity())
+        val pathConstraint = PathConstraint(TestContract.Commands.Command1()::class.java, TestStateA.TestStatus.STATUSA1, MultiplicityConstraint(), MultiplicityConstraint())
 
         val path1 = Path(TestContract.Commands.Command1()::class.java, TestStateA.TestStatus.STATUSA1, 1, 1)
         assert(pathConstraint allows path1)
@@ -77,24 +77,24 @@ class ContractUtilsTests() {
     @Test
     fun `check Multiplicities`(){
 
-        val m1 = Multiplicity()
+        val m1 = MultiplicityConstraint()
         assert(m1 doesNotAllow 0)
         assert(m1 allows 1)
         assert(m1 doesNotAllow  2)
 
-        val m2 = Multiplicity(0)
+        val m2 = MultiplicityConstraint(0)
         assert(m2 allows 0)
         assert(m2 doesNotAllow  1)
         assert(m2 doesNotAllow  2)
 
-        val m3 = Multiplicity(1, true, 3)
+        val m3 = MultiplicityConstraint(1, true, 3)
         assert(m3 doesNotAllow 0)
         assert(m3 allows 1)
         assert(m3 allows 2)
         assert(m3 allows 3)
         assert(m3 doesNotAllow 4)
 
-        val m4 = Multiplicity(1, false, 3)
+        val m4 = MultiplicityConstraint(1, false, 3)
         assert(m4 doesNotAllow 0)
         assert(m4 allows 1)
         assert(m4 allows 2)
@@ -105,8 +105,8 @@ class ContractUtilsTests() {
     @Test
     fun `check PathConstraints with input and output Multiplicities`(){
 
-        // test bounded input Multiplicity
-        val pathConstraint1 = PathConstraint(TestContract.Commands.Command1()::class.java, TestStateA.TestStatus.STATUSA1, Multiplicity(1,true, 2), Multiplicity())
+        // test bounded input MultiplicityConstraint
+        val pathConstraint1 = PathConstraint(TestContract.Commands.Command1()::class.java, TestStateA.TestStatus.STATUSA1, MultiplicityConstraint(1,true, 2), MultiplicityConstraint())
 
         val path1 = Path(TestContract.Commands.Command1()::class.java, TestStateA.TestStatus.STATUSA1, 0, 1)
         assert(pathConstraint1 doesNotAllow  path1)
@@ -121,8 +121,8 @@ class ContractUtilsTests() {
         assert(pathConstraint1 doesNotAllow  path4)
 
 
-        // test unbounded output Multiplicity
-        val pathConstraint2 = PathConstraint(TestContract.Commands.Command1()::class.java, TestStateA.TestStatus.STATUSA1, Multiplicity(), Multiplicity(1,false,0))
+        // test unbounded output MultiplicityConstraint
+        val pathConstraint2 = PathConstraint(TestContract.Commands.Command1()::class.java, TestStateA.TestStatus.STATUSA1, MultiplicityConstraint(), MultiplicityConstraint(1,false,0))
 
         val path5 = Path(TestContract.Commands.Command1()::class.java, TestStateA.TestStatus.STATUSA1, 1, 0)
         assert(pathConstraint2 doesNotAllow  path5)
@@ -140,84 +140,77 @@ class ContractUtilsTests() {
     @Test
     fun `check AdditionalStateConstraint`(){
 
-        val asc = AdditionalStatesConstraint(TestStateB::class.java, Multiplicity(1, false))
+        val asc = AdditionalStatesConstraint(AdditionalStatesType.OUTPUT,TestStateB::class.java, MultiplicityConstraint(1, false))
+
+        // Check type match
+        val as1 = AdditionalStates(AdditionalStatesType.OUTPUT, TestStateB::class.java, 1)
+        assert( asc isSatisfiedBy as1)
+
+        val as2 = AdditionalStates(AdditionalStatesType.INPUT, TestStateB::class.java, 1)
+        assert( asc isNotSatisfiedBy as2)
+
+        val as3 = AdditionalStates(AdditionalStatesType.REFERENCE, TestStateB::class.java, 1)
+        assert( asc isNotSatisfiedBy as3)
 
         // Check state match
-        val as1 = AdditionalStateType(TestStateA::class.java, 1)
-        assert (asc isNotSatisfiedBy as1)
+        val as10 = AdditionalStates(AdditionalStatesType.OUTPUT, TestStateA::class.java, 1)
+        assert (asc isNotSatisfiedBy as10)
 
-        val as2 = AdditionalStateType(TestStateB::class.java, 1)
-        assert (asc isSatisfiedBy as2)
+        val as11 = AdditionalStates(AdditionalStatesType.OUTPUT, TestStateB::class.java, 1)
+        assert (asc isSatisfiedBy as11)
 
-        val as3 = AdditionalStateType(TestStateC::class.java, 1)
-        assert (asc isNotSatisfiedBy as3)
+        val as12 = AdditionalStates(AdditionalStatesType.OUTPUT, TestStateC::class.java, 1)
+        assert (asc isNotSatisfiedBy as12)
 
-        // Check Multiplicity match
-        val as4 = AdditionalStateType(TestStateB::class.java, 0)
-        assert (asc isNotSatisfiedBy as4)
+        // Check MultiplicityConstraint match
+        val as20 = AdditionalStates(AdditionalStatesType.OUTPUT, TestStateB::class.java, 0)
+        assert (asc isNotSatisfiedBy as20)
 
-        val as5 = AdditionalStateType(TestStateB::class.java, 1)
-        assert (asc isSatisfiedBy as5)
+        val as21 = AdditionalStates(AdditionalStatesType.OUTPUT, TestStateB::class.java, 1)
+        assert (asc isSatisfiedBy as21)
 
-        val as6 = AdditionalStateType(TestStateB::class.java, 2)
-        assert (asc isSatisfiedBy as6)
+        val as22 = AdditionalStates(AdditionalStatesType.OUTPUT, TestStateB::class.java, 2)
+        assert (asc isSatisfiedBy as22)
 
-    }
-
-    @Test
-    fun `check AdditionalStateConstraints`(){
-
-
-        val asc1 = AdditionalStatesConstraint(TestStateB::class.java, Multiplicity(1, true, 2))
-        val asc2 = AdditionalStatesConstraint(TestStateC::class.java, Multiplicity(1, false))
-
-        val ascs = AdditionalStatesConstraints(setOf(asc1, asc2))
-
-
-        // check state type
-        val as1 = AdditionalStateType(TestStateB::class.java, 1)
-        val as2 = AdditionalStateType(TestStateC::class.java, 1)
-        val as3 = AdditionalStateType(TestStateD::class.java, 1)
-
-        val set1 = setOf(as1,as2)
-        assert( ascs isSatisfiedBy set1)
-
-        val set2 = setOf(as1,as2, as3)
-        assert( ascs isSatisfiedBy set2)
-
-        val set3 = setOf(as2, as3)
-        assert( ascs isNotSatisfiedBy set3)
-
-        // Check multiplicity
-        val as4 = AdditionalStateType(TestStateB::class.java, 1)
-        val as5 = AdditionalStateType(TestStateB::class.java, 3)
-        val as6 = AdditionalStateType(TestStateC::class.java, 1)
-
-        val set4 = setOf(as4,as6)
-        assert( ascs isSatisfiedBy set4)
-
-        val set5 = setOf(as4,as5)
-        assert( ascs isNotSatisfiedBy set5)
     }
 
     @Test
     fun `check PathConstraints with additional input and output constraints`(){
 
 
-        val pathConstraint1 = PathConstraint(TestContract.Commands.Command1()::class.java, TestStateA.TestStatus.STATUSA1, additionalInputsConstraints = AdditionalStatesConstraints(setOf(AdditionalStatesConstraint(TestStateB::class.java, Multiplicity(1, true, 2)))))
+        val as1 = AdditionalStates(AdditionalStatesType.OUTPUT, TestStateB::class.java, 1)
+        val as2 = AdditionalStates(AdditionalStatesType.OUTPUT, TestStateC::class.java, 1)
+        val as3 = AdditionalStates(AdditionalStatesType.OUTPUT, TestStateD::class.java, 1)
 
-        val as1 = AdditionalStateType(TestStateB::class.java, 1)
+        val asc1 = AdditionalStatesConstraint(AdditionalStatesType.OUTPUT, TestStateB::class.java, MultiplicityConstraint(1, true, 2))
+        val asc2 = AdditionalStatesConstraint(AdditionalStatesType.OUTPUT, TestStateC::class.java, MultiplicityConstraint(1, true, 2))
+
+        // Check PathConstraint with single AdditionalStatesConstraint
+        val pathConstraint1 = PathConstraint(TestContract.Commands.Command1()::class.java, TestStateA.TestStatus.STATUSA1, additionalStatesConstraints = setOf(asc1))
+
         val path1 = Path(TestContract.Commands.Command1()::class.java, TestStateA.TestStatus.STATUSA1, 1, 1, setOf(as1))
-        assert(pathConstraint1 allows  path1)
+        assert(pathConstraint1 allows path1)
 
-        val as2 = AdditionalStateType(TestStateC::class.java, 1)
         val path2 = Path(TestContract.Commands.Command1()::class.java, TestStateA.TestStatus.STATUSA1, 1, 1, setOf(as2))
         assert(pathConstraint1 doesNotAllow  path2)
 
-        val path3 = Path(TestContract.Commands.Command1()::class.java, TestStateA.TestStatus.STATUSA1, 1, 1, setOf(as1,as2))
+        val path3 = Path(TestContract.Commands.Command1()::class.java, TestStateA.TestStatus.STATUSA1, 1, 1, setOf(as1, as2))
         assert(pathConstraint1 allows  path3)
 
+
+        // Check PathConstraint with multiple AdditionalStatesConstraint
+        val pathConstraint2 = PathConstraint(TestContract.Commands.Command1()::class.java, TestStateA.TestStatus.STATUSA1, additionalStatesConstraints = setOf(asc1, asc2))
+
+        val path21 = Path(TestContract.Commands.Command1()::class.java, TestStateA.TestStatus.STATUSA1, 1, 1, setOf(as1))
+        assert(pathConstraint2 doesNotAllow  path21)
+
+        val path22 = Path(TestContract.Commands.Command1()::class.java, TestStateA.TestStatus.STATUSA1, 1, 1, setOf(as2))
+        assert(pathConstraint2 doesNotAllow  path22)
+
+        val path23 = Path(TestContract.Commands.Command1()::class.java, TestStateA.TestStatus.STATUSA1, 1, 1, setOf(as1, as2))
+        assert(pathConstraint2 allows  path23)
+
+        val path24 = Path(TestContract.Commands.Command1()::class.java, TestStateA.TestStatus.STATUSA1, 1, 1, setOf(as1, as2, as3))
+        assert(pathConstraint2 allows  path24)
     }
-
-
 }

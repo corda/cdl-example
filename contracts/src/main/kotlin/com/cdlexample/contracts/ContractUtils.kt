@@ -7,74 +7,68 @@ import net.corda.core.contracts.*
 // todo: consider if these classes should be data classes or not
 // todo: should the constraints be passing error messages back rather than false?
 // todo: do these need to be locked to State Type?
+// todo: show we revert back to Command rather than Command::class.java?
 
 data class Path(val commandClass: Class<out CommandData>,
                 val outputStatus: Status?,
                 val numberOfInputStates: Int,
                 val numberOfOutputStates: Int,
-                val additionalInputs: Set<AdditionalStateType> = setOf(),
-                val additionalOutputs: Set<AdditionalStateType> = setOf())
+                val additionalStates: Set<AdditionalStates> = setOf())
 
 
-data class AdditionalStateType(val type: Class<out ContractState>, val numberOfStates: Int)
+data class AdditionalStates(val type: AdditionalStatesType, val clazz: Class<out ContractState>, val numberOfStates: Int)
 
+enum class AdditionalStatesType {INPUT, OUTPUT, REFERENCE}
 
 class PathConstraint(val commandClass: Class<out CommandData>,
                      val outputStatus: Status?,
-                     val multiplicityIn: Multiplicity = Multiplicity(),
-                     val multiplicityOut: Multiplicity = Multiplicity(),
-                     val additionalInputsConstraints: AdditionalStatesConstraints = AdditionalStatesConstraints(),
-                     val additionalOutputsConstraints: AdditionalStatesConstraints = AdditionalStatesConstraints()){
+                     val inputMultiplicityConstraint: MultiplicityConstraint = MultiplicityConstraint(),
+                     val outputMultiplicityConstraint: MultiplicityConstraint = MultiplicityConstraint(),
+                     val additionalStatesConstraints: Set<AdditionalStatesConstraint> =  setOf()){
 
     infix fun allows(p: Path): Boolean{
             var allows = true
             if (commandClass != p.commandClass) allows = false
             if (outputStatus != p.outputStatus) allows = false
-            if (multiplicityIn doesNotAllow p.numberOfInputStates) allows = false
-            if (multiplicityOut doesNotAllow p.numberOfOutputStates) allows = false
-            if (additionalInputsConstraints isNotSatisfiedBy p.additionalInputs) allows = false
-            if (additionalOutputsConstraints isNotSatisfiedBy p.additionalOutputs) allows = false
+            if (inputMultiplicityConstraint doesNotAllow p.numberOfInputStates) allows = false
+            if (outputMultiplicityConstraint doesNotAllow p.numberOfOutputStates) allows = false
+            if (!additionalStatesCheck(additionalStatesConstraints, p.additionalStates)) allows = false
             return allows
     }
 
     infix fun doesNotAllow(p: Path): Boolean {
         return !this.allows(p)
     }
-}
 
-data class AdditionalStatesConstraints(val constraints: Set<AdditionalStatesConstraint> = setOf()) {
-
-    infix fun isSatisfiedBy(additionalStatesType: Set<AdditionalStateType>): Boolean {
+    private fun additionalStatesCheck(constraints: Set<AdditionalStatesConstraint>, additionalStates: Set<AdditionalStates>) :Boolean{
         for (c in constraints){
             var satisfied = false
-            for (s in additionalStatesType){
+            for (s in additionalStates){
                 if (c isSatisfiedBy s) satisfied = true
             }
             if (!satisfied) return false
         }
         return true
     }
-    infix fun isNotSatisfiedBy(additionalStatesType: Set<AdditionalStateType>): Boolean {
-        return !isSatisfiedBy(additionalStatesType)
-    }
 }
 
-data class AdditionalStatesConstraint(val type: Class<out ContractState>, val requiredNumberOfStates: Multiplicity) {
+data class AdditionalStatesConstraint(val type: AdditionalStatesType ,val clazz: Class<out ContractState>, val requiredNumberOfStates: MultiplicityConstraint) {
 
-    infix fun isSatisfiedBy(additionalStates: AdditionalStateType ):Boolean {
+    infix fun isSatisfiedBy(additionalStates: AdditionalStates ):Boolean {
         var match = true
         if (type != additionalStates.type) return false
+        if (clazz != additionalStates.clazz) return false
         if (requiredNumberOfStates.doesNotAllow(additionalStates.numberOfStates)) return false
         return true
     }
-    infix fun isNotSatisfiedBy (additionalStates: AdditionalStateType): Boolean{
+    infix fun isNotSatisfiedBy (additionalStates: AdditionalStates): Boolean{
         return !isSatisfiedBy(additionalStates)
     }
 }
 
-data class Multiplicity(val from: Int = 1,
-                        val bounded: Boolean = true,
-                        val to: Int = from){
+data class MultiplicityConstraint(val from: Int = 1,
+                                  val bounded: Boolean = true,
+                                  val to: Int = from){
 
     infix fun allows(numberOfStates: Int): Boolean{
         if (numberOfStates < from) return false
