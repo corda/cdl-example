@@ -4,19 +4,17 @@ import com.cdlexample.states.Status
 import com.cdlexample.states.StatusState
 import net.corda.core.contracts.*
 
-// todo: consider if these classes should be data classes or not
-// todo: should the constraints be passing error messages back rather than false?
 // todo: do these need to be locked to State Type?
 // todo: show we revert back to Command rather than Command::class.java?
 
-data class Path(val commandClass: Class<out CommandData>,
+class Path(val commandClass: Class<out CommandData>,
                 val outputStatus: Status?,
                 val numberOfInputStates: Int,
                 val numberOfOutputStates: Int,
                 val additionalStates: Set<AdditionalStates> = setOf())
 
 
-data class AdditionalStates(val type: AdditionalStatesType, val clazz: Class<out ContractState>, val numberOfStates: Int)
+class AdditionalStates(val type: AdditionalStatesType, val clazz: Class<out ContractState>, val numberOfStates: Int)
 
 enum class AdditionalStatesType {INPUT, OUTPUT, REFERENCE}
 
@@ -52,7 +50,7 @@ class PathConstraint(val commandClass: Class<out CommandData>,
     }
 }
 
-data class AdditionalStatesConstraint(val type: AdditionalStatesType ,val clazz: Class<out ContractState>, val requiredNumberOfStates: MultiplicityConstraint) {
+class AdditionalStatesConstraint(val type: AdditionalStatesType ,val clazz: Class<out ContractState>, val requiredNumberOfStates: MultiplicityConstraint) {
 
     infix fun isSatisfiedBy(additionalStates: AdditionalStates ):Boolean {
         var match = true
@@ -66,7 +64,7 @@ data class AdditionalStatesConstraint(val type: AdditionalStatesType ,val clazz:
     }
 }
 
-data class MultiplicityConstraint(val from: Int = 1,
+class MultiplicityConstraint(val from: Int = 1,
                                   val bounded: Boolean = true,
                                   val to: Int = from){
 
