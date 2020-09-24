@@ -49,22 +49,22 @@ class AgreementContract : Contract {
         val outputStates = tx.outputsOfType<AgreementState>()
         val otherOutputStates = tx.inputStates - outputStates
 
-        val txPath =  Path(command.value::class.java, outputStatus, inputStates.size, outputStates.size)
+        val txPath =  Path(command.value, outputStatus, inputStates.size, outputStates.size)
 
 
         val pathMap = mapOf<Status?, List<PathConstraint>>(
             null to listOf(
-                    PathConstraint(Commands.Propose()::class.java, PROPOSED, MultiplicityConstraint(0))
+                    PathConstraint(Commands.Propose(), PROPOSED, MultiplicityConstraint(0))
             ),
             PROPOSED to listOf(
-                    PathConstraint(Commands.Reject()::class.java, REJECTED),
-                    PathConstraint(Commands.Agree()::class.java, AGREED)
+                    PathConstraint(Commands.Reject(), REJECTED),
+                    PathConstraint(Commands.Agree(), AGREED)
             ),
             REJECTED to listOf(
-                    PathConstraint(Commands.Repropose()::class.java, PROPOSED)
+                    PathConstraint(Commands.Repropose(), PROPOSED)
             ),
             AGREED to listOf(
-                    PathConstraint(Commands.Complete()::class.java, null, outputMultiplicityConstraint = MultiplicityConstraint(0))
+                    PathConstraint(Commands.Complete(), null, outputMultiplicityConstraint = MultiplicityConstraint(0))
             )
         )
 

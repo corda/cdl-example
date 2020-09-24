@@ -4,10 +4,10 @@ import com.cdlexample.states.Status
 import com.cdlexample.states.StatusState
 import net.corda.core.contracts.*
 
-// todo: do these need to be locked to State Type?
+// todo: do these need to be locked to State Type? -> could then lock allowed commands
 // todo: show we revert back to Command rather than Command::class.java?
 
-class Path(val commandClass: Class<out CommandData>,
+class Path(val command: CommandData,
                 val outputStatus: Status?,
                 val numberOfInputStates: Int,
                 val numberOfOutputStates: Int,
@@ -18,7 +18,7 @@ class AdditionalStates(val type: AdditionalStatesType, val clazz: Class<out Cont
 
 enum class AdditionalStatesType {INPUT, OUTPUT, REFERENCE}
 
-class PathConstraint(val commandClass: Class<out CommandData>,
+class PathConstraint(val command: CommandData,
                      val outputStatus: Status?,
                      val inputMultiplicityConstraint: MultiplicityConstraint = MultiplicityConstraint(),
                      val outputMultiplicityConstraint: MultiplicityConstraint = MultiplicityConstraint(),
@@ -26,7 +26,7 @@ class PathConstraint(val commandClass: Class<out CommandData>,
 
     infix fun allows(p: Path): Boolean{
             var allows = true
-            if (commandClass != p.commandClass) allows = false
+            if (command::class.java != p.command::class.java) allows = false
             if (outputStatus != p.outputStatus) allows = false
             if (inputMultiplicityConstraint doesNotAllow p.numberOfInputStates) allows = false
             if (outputMultiplicityConstraint doesNotAllow p.numberOfOutputStates) allows = false
