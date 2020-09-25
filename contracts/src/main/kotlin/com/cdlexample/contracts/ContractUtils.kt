@@ -7,6 +7,8 @@ import net.corda.core.contracts.*
 // todo: do these need to be locked to State Type? -> could then lock allowed commands
 // todo: how to protect against substituting a different state type with the same stauts. need to lock the Path and Path constraint to a particular state type
 
+// todo: refact doesNotAllow -> allows, ie remove indirection)
+
 class Path<T: ContractState>(val command: CommandData,
                 val outputStatus: Status?,
                 val numberOfInputStates: Int,
@@ -54,7 +56,7 @@ class PathConstraint<T: ContractState>(val command: CommandData,
 class AdditionalStatesConstraint(val type: AdditionalStatesType ,val clazz: Class<out ContractState>, val requiredNumberOfStates: MultiplicityConstraint) {
 
     infix fun isSatisfiedBy(additionalStates: AdditionalStates ):Boolean {
-        var match = true
+        var match = true // todo: remove + change to when statement
         if (type != additionalStates.type) return false
         if (clazz != additionalStates.clazz) return false
         if (requiredNumberOfStates.doesNotAllow(additionalStates.numberOfStates)) return false

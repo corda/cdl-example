@@ -52,7 +52,9 @@ class AgreementContract : Contract {
 
         val txPath =  Path<T>(command.value, outputStatus, inputStates.size, outputStates.size)
 
-        // todo: build txPath builder from transaction
+        // todo: build txPath builder in Contract utils - including the additional states builder (needed before can merge back into master)
+        // todo: how much of verify path constraints can be moved to ContractUtils
+
 
         val pathMap = mapOf<Status?, List<PathConstraint<T>>>(
             null to listOf(
