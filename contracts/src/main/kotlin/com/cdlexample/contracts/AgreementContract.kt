@@ -39,8 +39,10 @@ class AgreementContract : Contract {
 
     }
 
+    // Kotlin version
     inline fun <reified T: ContractState> verifyPathConstraints(tx: LedgerTransaction) = verifyPathConstraints(tx, T::class.java)
 
+    // Java version
     fun <T: ContractState> verifyPathConstraints(tx: LedgerTransaction, clazz: Class<T>){
 
         val command = tx.commands.requireSingleCommand<Commands>()
