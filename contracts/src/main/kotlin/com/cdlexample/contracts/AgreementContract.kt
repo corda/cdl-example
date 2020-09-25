@@ -30,6 +30,7 @@ class AgreementContract : Contract {
     override fun verify(tx: LedgerTransaction) {
 
         verifyPathConstraints<AgreementState>(tx)
+        verifyPathConstraints(tx, AgreementState::class.java)
         verifyUniversalConstraints(tx)
         verifyStatusConstraints(tx)
         verifyLinearIDConstraints(tx)
@@ -38,16 +39,17 @@ class AgreementContract : Contract {
 
     }
 
+    inline fun <reified T: ContractState> verifyPathConstraints(tx: LedgerTransaction) = verifyPathConstraints(tx, T::class.java)
 
-    inline fun <reified T: ContractState> verifyPathConstraints(tx: LedgerTransaction){
+    fun <T: ContractState> verifyPathConstraints(tx: LedgerTransaction, clazz: Class<T>){
 
         val command = tx.commands.requireSingleCommand<Commands>()
         val inputStatus = requireSingleInputStatus(tx)
         val outputStatus = requireSingleOutputStatus(tx)
 
-        val inputStates = tx.inputsOfType<T>()
+        val inputStates = tx.inputsOfType(clazz)
         val otherInputStates = tx.inputStates - inputStates
-        val outputStates = tx.outputsOfType<T>()
+        val outputStates = tx.outputsOfType(clazz)
         val otherOutputStates = tx.inputStates - outputStates
 
         val txPath =  Path<T>(command.value, outputStatus, inputStates.size, outputStates.size)
