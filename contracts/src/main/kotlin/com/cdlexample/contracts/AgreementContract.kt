@@ -46,18 +46,7 @@ class AgreementContract : Contract {
     // Java version
     fun <T: StatusState> verifyPathConstraints(tx: LedgerTransaction, clazz: Class<T>){
 
-        val command = tx.commands.requireSingleCommand<Commands>()
-        val inputStatus = requireSingleInputStatus(tx, clazz)
-        val outputStatus = requireSingleOutputStatus(tx, clazz)
-
-        val inputStates = tx.inputsOfType(clazz)
-        val otherInputStates = tx.inputStates - inputStates
-        val outputStates = tx.outputsOfType(clazz)
-        val otherOutputStates = tx.inputStates - outputStates
-
-        val txPath =  Path<T>(command.value, outputStatus, inputStates.size, outputStates.size)
-
-
+        val txPath = getPath(tx, clazz)
 
         // todo: build txPath builder in Contract utils - including the additional states builder (needed before can merge back into master)
         // todo: how much of verify path constraints can be moved to ContractUtils
@@ -78,7 +67,7 @@ class AgreementContract : Contract {
                     PathConstraint(Commands.Complete(), null, outputMultiplicityConstraint = MultiplicityConstraint(0))
             )
         )
-
+        val inputStatus = requireSingleInputStatus(tx, clazz)
         val allowedPaths = pathMap[inputStatus]
 
         requireThat {

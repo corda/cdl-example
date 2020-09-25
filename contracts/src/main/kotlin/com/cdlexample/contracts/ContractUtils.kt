@@ -97,7 +97,15 @@ fun <T: StatusState>requireSingleStatus (states: List<T>, error: String): Status
     return if (states.isNotEmpty()) states.first().status else null
 }
 
-//fun <T: ContractState>getPath(tx:LedgerTransaction): Path<T>{
-//
-//
-//}
+fun <T: StatusState>getPath(tx:LedgerTransaction, clazz: Class<T>): Path<T>{
+
+    val command = tx.commands.requireSingleCommand<AgreementContract.Commands>()
+    val inputStatus = requireSingleInputStatus(tx, clazz)
+    val outputStatus = requireSingleOutputStatus(tx, clazz)
+
+    val inputStates = tx.inputsOfType(clazz)
+    val outputStates = tx.outputsOfType(clazz)
+
+
+    return  Path<T>(command.value, outputStatus, inputStates.size, outputStates.size)
+}
