@@ -4,6 +4,7 @@ import com.cdlexample.states.AgreementState
 import com.cdlexample.states.AgreementStatus.*
 import com.cdlexample.states.DummyState
 import com.cdlexample.states.Status
+import com.cdlexample.states.StatusState
 import net.corda.core.contracts.*
 import net.corda.core.transactions.LedgerTransaction
 
@@ -40,14 +41,14 @@ class AgreementContract : Contract {
     }
 
     // Kotlin version
-    inline fun <reified T: ContractState> verifyPathConstraints(tx: LedgerTransaction) = verifyPathConstraints(tx, T::class.java)
+    inline fun <reified T: StatusState> verifyPathConstraints(tx: LedgerTransaction) = verifyPathConstraints(tx, T::class.java)
 
     // Java version
-    fun <T: ContractState> verifyPathConstraints(tx: LedgerTransaction, clazz: Class<T>){
+    fun <T: StatusState> verifyPathConstraints(tx: LedgerTransaction, clazz: Class<T>){
 
         val command = tx.commands.requireSingleCommand<Commands>()
-        val inputStatus = requireSingleInputStatus(tx)
-        val outputStatus = requireSingleOutputStatus(tx)
+        val inputStatus = requireSingleInputStatus(tx, clazz)
+        val outputStatus = requireSingleOutputStatus(tx, clazz)
 
         val inputStates = tx.inputsOfType(clazz)
         val otherInputStates = tx.inputStates - inputStates
@@ -55,6 +56,8 @@ class AgreementContract : Contract {
         val otherOutputStates = tx.inputStates - outputStates
 
         val txPath =  Path<T>(command.value, outputStatus, inputStates.size, outputStates.size)
+
+
 
         // todo: build txPath builder in Contract utils - including the additional states builder (needed before can merge back into master)
         // todo: how much of verify path constraints can be moved to ContractUtils
@@ -134,11 +137,5 @@ class AgreementContract : Contract {
 
 
 
-    fun requireSingleInputStatus(tx:LedgerTransaction): Status?{
-        return requireSingleStatus(tx.inputsOfType<AgreementState>(),"All inputs of type AgreementState must have the same status.")
-    }
 
-    fun requireSingleOutputStatus(tx:LedgerTransaction): Status?{
-        return requireSingleStatus(tx.outputsOfType<AgreementState>(), "All outputs of type AgreementState must have the same status.")
-    }
 }

@@ -1,11 +1,15 @@
 package com.cdlexample.contracts
 
+import com.cdlexample.states.AgreementState
 import com.cdlexample.states.Status
 import com.cdlexample.states.StatusState
 import net.corda.core.contracts.*
+import net.corda.core.transactions.LedgerTransaction
 
 
 // todo: how to protect against substituting a different state type with the same stauts. need to lock the Path and Path constraint to a particular state type
+
+// todo: make types inherit from StatusState, rather than ContractState
 
 
 class Path<T: ContractState>(val command: CommandData,
@@ -68,9 +72,32 @@ fun <T: ContractState> verifyPath(p: Path<T>, pathConstraintList: List<PathConst
         pathConstraintList.any { pc -> pc allows p }
 
 
+
+
+
+
+
+inline fun <reified T: StatusState>requireSingleInputStatus(tx:LedgerTransaction): Status? = requireSingleInputStatus(tx, T::class.java)
+
+fun <T: StatusState>requireSingleInputStatus(tx:LedgerTransaction, clazz: Class<T>): Status?{
+    return requireSingleStatus(tx.inputsOfType(clazz),"All inputs of type ${clazz.simpleName} must have the same status.")
+}
+
+
+inline fun <reified T: StatusState>requireSingleOutputStatus(tx:LedgerTransaction): Status? = requireSingleOutputStatus(tx, T::class.java)
+
+fun <T: StatusState>requireSingleOutputStatus(tx:LedgerTransaction, clazz: Class<T>): Status?{
+    return requireSingleStatus(tx.outputsOfType(clazz), "All outputs of type ${clazz.simpleName} must have the same status.")
+}
+
 fun <T: StatusState>requireSingleStatus (states: List<T>, error: String): Status?{
     val statuses = states.map {it.status}.distinct()
     requireThat {
         error using ( statuses.size <= 1)}
     return if (states.isNotEmpty()) states.first().status else null
 }
+
+//fun <T: ContractState>getPath(tx:LedgerTransaction): Path<T>{
+//
+//
+//}
