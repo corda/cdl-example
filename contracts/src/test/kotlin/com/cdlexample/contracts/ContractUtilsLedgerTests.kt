@@ -5,7 +5,9 @@ import com.cdlexample.states.StatusState
 import net.corda.core.contracts.*
 import net.corda.core.identity.AbstractParty
 import net.corda.core.identity.CordaX500Name
+import net.corda.core.node.NetworkParameters
 import net.corda.core.transactions.LedgerTransaction
+import net.corda.testing.common.internal.testNetworkParameters
 import net.corda.testing.core.TestIdentity
 import net.corda.testing.node.MockServices
 import net.corda.testing.node.ledger
@@ -55,11 +57,12 @@ class ContractUtilsLedgerTests {
         }
     }
 
-    private val ledgerServices = MockServices()
-
     val alice = TestIdentity(CordaX500Name("Alice Ltd", "London", "GB"))
     val bob = TestIdentity(CordaX500Name("Bob Inc", "New York", "US"))
     val charlie = TestIdentity(CordaX500Name("Charlie SA", "Paris", "FR"))
+    private val ledgerServices = MockServices(alice, networkParameters = testNetworkParameters(minimumPlatformVersion = 4))
+
+
 
 
     @Test
@@ -78,7 +81,20 @@ class ContractUtilsLedgerTests {
                 input(TestContract.ID, testStateB1)
                 input(TestContract.ID, testStateC1)
                 input(TestContract.ID, testStateD1)
+                reference(TestContract.ID, testStateB1)
+                reference(TestContract.ID, testStateC1)
+                reference(TestContract.ID, testStateC1)
+                reference(TestContract.ID, testStateD1)
                 command(alice.publicKey, TestContract.Commands.Command1())
+                output(TestContract.ID, testStateA1)
+                output(TestContract.ID, testStateA1)
+                output(TestContract.ID, testStateB1)
+                output(TestContract.ID, testStateC1)
+                output(TestContract.ID, testStateD1)
+                output(TestContract.ID, testStateD1)
+
+
+
                 verifies()
 
             }

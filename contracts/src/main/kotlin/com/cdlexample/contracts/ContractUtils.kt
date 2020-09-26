@@ -98,18 +98,35 @@ fun <T: StatusState>getPath(tx:LedgerTransaction, clazz: Class<T>, commandValue:
     val primaryInputStates = tx.inputsOfType(clazz)
     val primaryOutputStates = tx.outputsOfType(clazz)
 
+    // todo: consider what to do with reference states of primary type
+
+
+    // get Additional Inputs
     val remainingInputs = tx.inputStates - primaryInputStates
-
-    val inputTypes = remainingInputs.map { it::class.java }
-    val distinctTypes = inputTypes.distinct()
-
-    val list = mutableListOf<AdditionalStates>()
-    for (dt in distinctTypes){
-        list. add(AdditionalStates(AdditionalStatesType.INPUT, dt, tx.inputsOfType(dt).size))
+    val distinctInputTypes = remainingInputs.map { it::class.java }.distinct()
+    val mList = mutableListOf<AdditionalStates>()
+    for (dt in distinctInputTypes){
+        mList.add(AdditionalStates(AdditionalStatesType.INPUT, dt, tx.inputsOfType(dt).size))
     }
 
+    // Get Additional Outputs
+    val remainingOutputs = tx.outputStates - primaryOutputStates
+    val distinctOutputTypes = remainingOutputs.map { it::class.java }.distinct()
+    for (dt in distinctOutputTypes){
+        mList.add(AdditionalStates(AdditionalStatesType.OUTPUT, dt, tx.outputsOfType(dt).size))
+    }
+
+    // Get Additional References
+    val references = tx.referenceStates
+    val distinctReferenceTypes = references.map { it::class.java }.distinct()
+    for (dt in distinctReferenceTypes){
+        mList.add(AdditionalStates(AdditionalStatesType.REFERENCE, dt, tx.referenceInputsOfType(dt).size))
+    }
+
+
+    val additionalStates = mList.toSet()
     // todo: write test to try out - need to work out how to test with LedgerTransactions - can we use mock services
 
 
-    return  Path<T>(commandValue, outputStatus, primaryInputStates.size, primaryOutputStates.size)
+    return  Path<T>(commandValue, outputStatus, primaryInputStates.size, primaryOutputStates.size, additionalStates)
 }
