@@ -11,50 +11,49 @@ import net.corda.testing.node.MockServices
 import net.corda.testing.node.ledger
 import org.junit.Test
 
-
-// todo: if leave these outside the test class need to change ContractutilsTest to use these + move them to a separate file
-
-@BelongsToContract(TestContract::class)
-class TestStateA(override val status: Status?, override val participants: List<AbstractParty> = listOf()) : ContractState, StatusState {
-
-    enum class TestStatus : Status {
-        STATUSA1,
-        STATUSA2
-    }
-}
-
-@BelongsToContract(TestContract::class)
-class TestStateB(override val participants: List<AbstractParty> = listOf()) : ContractState
-
-@BelongsToContract(TestContract::class)
-class TestStateC(override val participants: List<AbstractParty> = listOf()) : ContractState
-
-@BelongsToContract(TestContract::class)
-class TestStateD(override val participants: List<AbstractParty> = listOf()) : ContractState
-
-
-class TestContract : Contract {
-    companion object {
-        // Used to identify our contract when building a transaction.
-        const val ID = "com.cdlexample.contracts.TestContract"
-    }
-
-    override fun verify(tx: LedgerTransaction) {
-
-        val command = tx.commands.requireSingleCommand<TestContract.Commands>().value
-        val txPath = getPath(tx, TestStateA::class.java, command)
-
-    }
-
-    interface Commands : CommandData {
-        class Command1 : Commands
-        class Command2 : Commands
-    }
-}
-
-
-
 class ContractUtilsLedgerTests {
+
+
+    @BelongsToContract(TestContract::class)
+    class TestStateA(override val status: Status?, override val participants: List<AbstractParty> = listOf()) : ContractState, StatusState {
+
+        enum class TestStatus : Status {
+            STATUSA1,
+            STATUSA2
+        }
+    }
+
+    @BelongsToContract(TestContract::class)
+    class TestStateB(override val participants: List<AbstractParty> = listOf()) : ContractState
+
+    @BelongsToContract(TestContract::class)
+    class TestStateC(override val participants: List<AbstractParty> = listOf()) : ContractState
+
+    @BelongsToContract(TestContract::class)
+    class TestStateD(override val participants: List<AbstractParty> = listOf()) : ContractState
+
+
+    class TestContract : Contract {
+        companion object {
+            // Used to identify our contract when building a transaction.
+            const val ID = "com.cdlexample.contracts.ContractUtilsLedgerTests\$TestContract"
+        }
+
+        override fun verify(tx: LedgerTransaction) {
+
+            val command = tx.commands.requireSingleCommand<TestContract.Commands>().value
+            val txPath = getPath(tx, TestStateA::class.java, command)
+
+
+            // todo: can test created paths against PathConstraints to check if Path builder is working
+
+        }
+
+        interface Commands : CommandData {
+            class Command1 : Commands
+            class Command2 : Commands
+        }
+    }
 
     private val ledgerServices = MockServices()
 
