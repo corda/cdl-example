@@ -1,6 +1,5 @@
 package com.cdlexample.contracts
 
-import com.cdlexample.states.AgreementState
 import com.cdlexample.states.Status
 import com.cdlexample.states.StatusState
 import net.corda.core.contracts.*
@@ -72,11 +71,6 @@ fun <T: ContractState> verifyPath(p: Path<T>, pathConstraintList: List<PathConst
         pathConstraintList.any { pc -> pc allows p }
 
 
-
-
-
-
-
 inline fun <reified T: StatusState>requireSingleInputStatus(tx:LedgerTransaction): Status? = requireSingleInputStatus(tx, T::class.java)
 
 fun <T: StatusState>requireSingleInputStatus(tx:LedgerTransaction, clazz: Class<T>): Status?{
@@ -97,15 +91,25 @@ fun <T: StatusState>requireSingleStatus (states: List<T>, error: String): Status
     return if (states.isNotEmpty()) states.first().status else null
 }
 
-fun <T: StatusState>getPath(tx:LedgerTransaction, clazz: Class<T>): Path<T>{
+fun <T: StatusState>getPath(tx:LedgerTransaction, clazz: Class<T>, commandValue: CommandData): Path<T> {
 
-    val command = tx.commands.requireSingleCommand<AgreementContract.Commands>()
-    val inputStatus = requireSingleInputStatus(tx, clazz)
     val outputStatus = requireSingleOutputStatus(tx, clazz)
 
-    val inputStates = tx.inputsOfType(clazz)
-    val outputStates = tx.outputsOfType(clazz)
+    val primaryInputStates = tx.inputsOfType(clazz)
+    val primaryOutputStates = tx.outputsOfType(clazz)
+
+    val remainingInputs = tx.inputStates - primaryInputStates
+
+    val inputTypes = remainingInputs.map { it::class.java }
+    val distinctTypes = inputTypes.distinct()
+
+    val list = mutableListOf<AdditionalStates>()
+    for (dt in distinctTypes){
+        list. add(AdditionalStates(AdditionalStatesType.INPUT, dt, tx.inputsOfType(dt).size))
+    }
+
+    // todo: write test to try out - need to work out how to test with LedgerTransactions - can we use mock services
 
 
-    return  Path<T>(command.value, outputStatus, inputStates.size, outputStates.size)
+    return  Path<T>(commandValue, outputStatus, primaryInputStates.size, primaryOutputStates.size)
 }

@@ -31,6 +31,11 @@ class ContractUtilsTests() {
 
 
     class TestContract : Contract {
+        companion object {
+            // Used to identify our contract when building a transaction.
+            const val ID = "com.cdlexample.contracts.TestContract"
+        }
+
         override fun verify(tx: LedgerTransaction) {
         }
 

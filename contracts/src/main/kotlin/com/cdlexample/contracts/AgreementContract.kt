@@ -46,7 +46,9 @@ class AgreementContract : Contract {
     // Java version
     fun <T: StatusState> verifyPathConstraints(tx: LedgerTransaction, clazz: Class<T>){
 
-        val txPath = getPath(tx, clazz)
+        val commandValue = tx.commands.requireSingleCommand<AgreementContract.Commands>().value
+
+        val txPath = getPath(tx, clazz, commandValue)
 
         // todo: build txPath builder in Contract utils - including the additional states builder (needed before can merge back into master)
         // todo: how much of verify path constraints can be moved to ContractUtils
