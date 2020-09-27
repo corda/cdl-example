@@ -44,8 +44,7 @@ class PathConstraint<T: ContractState>(val command: CommandData,
              additionalStatesConstraints.all { c -> additionalStates.any { s -> c isSatisfiedBy s }}
 }
 
-// todo: consider making default multiplicity of 1, true, 1
-class AdditionalStatesConstraint(val type: AdditionalStatesType ,val clazz: Class<out ContractState>, val requiredNumberOfStates: MultiplicityConstraint) {
+class AdditionalStatesConstraint(val type: AdditionalStatesType ,val clazz: Class<out ContractState>, val requiredNumberOfStates: MultiplicityConstraint = MultiplicityConstraint()) {
 
     infix fun isSatisfiedBy(additionalStates: AdditionalStates ):Boolean = when {
         (type != additionalStates.type) -> false

@@ -159,18 +159,18 @@ class ContractUtilsLedgerTests {
                                     AdditionalStatesConstraint(AdditionalStatesType.INPUT, TestState2C::class.java, MultiplicityConstraint(1, true, 2))
                             )),
                             PathConstraint(Commands.Command1(), TestState2A.TestStatus.STATUSA1, additionalStatesConstraints = setOf(
-                                    AdditionalStatesConstraint(AdditionalStatesType.REFERENCE, TestState2B::class.java, MultiplicityConstraint())
+                                    AdditionalStatesConstraint(AdditionalStatesType.REFERENCE, TestState2B::class.java)
                             ))
                     ),
                     TestState2A.TestStatus.STATUSA2 to listOf(
                             PathConstraint(Commands.Command2(), TestState2A.TestStatus.STATUSA2, additionalStatesConstraints = setOf(
                                     AdditionalStatesConstraint(AdditionalStatesType.OUTPUT, TestState2C::class.java, MultiplicityConstraint(2,true)),
-                                    AdditionalStatesConstraint(AdditionalStatesType.OUTPUT, TestState2D::class.java, MultiplicityConstraint())
+                                    AdditionalStatesConstraint(AdditionalStatesType.OUTPUT, TestState2D::class.java)
                             )),
                             PathConstraint(Commands.Command2(), TestState2A.TestStatus.STATUSA2, additionalStatesConstraints = setOf(
                                     AdditionalStatesConstraint(AdditionalStatesType.INPUT, TestState2B::class.java, MultiplicityConstraint(2, false)),
-                                    AdditionalStatesConstraint(AdditionalStatesType.REFERENCE, TestState2C::class.java, MultiplicityConstraint()),
-                                    AdditionalStatesConstraint(AdditionalStatesType.OUTPUT, TestState2D::class.java, MultiplicityConstraint())
+                                    AdditionalStatesConstraint(AdditionalStatesType.REFERENCE, TestState2C::class.java),
+                                    AdditionalStatesConstraint(AdditionalStatesType.OUTPUT, TestState2D::class.java)
                             ))
                     )
             )
