@@ -6,7 +6,7 @@ import net.corda.core.contracts.*
 import net.corda.core.transactions.LedgerTransaction
 
 
-// todo: how to protect against substituting a different state type with the same stauts. need to lock the Path and Path constraint to a particular state type
+// todo: how to protect against substituting a different state type with the same stauts. need to lock the Path and Path constraint to a particular state type - currently could generate a Path of type T
 
 // todo: make types inherit from StatusState, rather than ContractState
 
@@ -44,6 +44,7 @@ class PathConstraint<T: ContractState>(val command: CommandData,
              additionalStatesConstraints.all { c -> additionalStates.any { s -> c isSatisfiedBy s }}
 }
 
+// todo: consider making default multiplicity of 1, true, 1
 class AdditionalStatesConstraint(val type: AdditionalStatesType ,val clazz: Class<out ContractState>, val requiredNumberOfStates: MultiplicityConstraint) {
 
     infix fun isSatisfiedBy(additionalStates: AdditionalStates ):Boolean = when {
@@ -91,15 +92,14 @@ fun <T: StatusState>requireSingleStatus (states: List<T>, error: String): Status
     return if (states.isNotEmpty()) states.first().status else null
 }
 
-fun <T: StatusState>getPath(tx:LedgerTransaction, clazz: Class<T>, commandValue: CommandData): Path<T> {
+fun <T: StatusState>getPath(tx:LedgerTransaction, primaryStateClass: Class<T>, commandValue: CommandData): Path<T> {
 
-    val outputStatus = requireSingleOutputStatus(tx, clazz)
+    val outputStatus = requireSingleOutputStatus(tx, primaryStateClass)
 
-    val primaryInputStates = tx.inputsOfType(clazz)
-    val primaryOutputStates = tx.outputsOfType(clazz)
+    val primaryInputStates = tx.inputsOfType(primaryStateClass)
+    val primaryOutputStates = tx.outputsOfType(primaryStateClass)
 
     // todo: consider what to do with reference states of primary type
-
 
     // get Additional Inputs
     val remainingInputs = tx.inputStates - primaryInputStates
