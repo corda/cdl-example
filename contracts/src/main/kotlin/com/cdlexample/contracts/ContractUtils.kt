@@ -10,7 +10,6 @@ import net.corda.core.transactions.LedgerTransaction
 
 // todo: make types inherit from StatusState, rather than ContractState
 
-
 class Path<T: ContractState>(val command: CommandData,
                 val outputStatus: Status?,
                 val numberOfInputStates: Int,
@@ -46,7 +45,6 @@ class PathConstraint<T: ContractState>(val command: CommandData,
             additionalStatesConstraints.all { c -> additionalStates.any { s -> c isSatisfiedBy s} ||
                                                                             c.requiredNumberOfStates.from == 0 && additionalStates.none { it.clazz == c.clazz }
             }
-
 }
 
 class AdditionalStatesConstraint(val type: AdditionalStatesType ,val clazz: Class<out ContractState>, val requiredNumberOfStates: MultiplicityConstraint = MultiplicityConstraint()) {
@@ -81,7 +79,6 @@ inline fun <reified T: StatusState>requireSingleInputStatus(tx:LedgerTransaction
 fun <T: StatusState>requireSingleInputStatus(tx:LedgerTransaction, clazz: Class<T>): Status?{
     return requireSingleStatus(tx.inputsOfType(clazz),"All inputs of type ${clazz.simpleName} must have the same status.")
 }
-
 
 inline fun <reified T: StatusState>requireSingleOutputStatus(tx:LedgerTransaction): Status? = requireSingleOutputStatus(tx, T::class.java)
 
@@ -127,10 +124,7 @@ fun <T: StatusState>getPath(tx:LedgerTransaction, primaryStateClass: Class<T>, c
         mList.add(AdditionalStates(AdditionalStatesType.REFERENCE, dt, tx.referenceInputsOfType(dt).size))
     }
 
-
     val additionalStates = mList.toSet()
-    // todo: write test to try out - need to work out how to test with LedgerTransactions - can we use mock services
-
 
     return  Path<T>(commandValue, outputStatus, primaryInputStates.size, primaryOutputStates.size, additionalStates)
 }

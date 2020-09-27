@@ -5,7 +5,6 @@ import com.cdlexample.states.AgreementStatus
 import net.corda.core.contracts.Amount
 import net.corda.core.identity.CordaX500Name
 import net.corda.testing.core.TestIdentity
-import net.corda.testing.dsl.LedgerDSL
 import net.corda.testing.node.MockServices
 import net.corda.testing.node.ledger
 import org.junit.Test
@@ -81,7 +80,6 @@ class AgreementContractTests {
         }
     }
 
-
     @Test
     fun `check all outputs of type AgreementState have the same Status`() {
 
@@ -99,7 +97,6 @@ class AgreementContractTests {
             }
         }
     }
-
 
     @Test
     fun `check non happy transition paths`() {
@@ -283,8 +280,6 @@ class AgreementContractTests {
         val state3 = AgreementState(AgreementStatus.PROPOSED, alice.party, bob.party, "Some grapes", Amount(10, Currency.getInstance("GBP")), alice.party, charlie.party)
         val state4 = AgreementState(AgreementStatus.PROPOSED, alice.party, bob.party, "Some grapes", Amount(10, Currency.getInstance("GBP")), alice.party, alice.party)
 
-
-
         ledgerServices.ledger {
 
             // As output states
@@ -368,14 +363,6 @@ class AgreementContractTests {
                 output(AgreementContract.ID, rejected3)
                 `fails with`("When status is Rejected rejectionReason must not be null")
             }
-
-
         }
-
-
-
-
     }
-
-
 }

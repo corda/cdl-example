@@ -99,8 +99,7 @@ class ContractUtilsLedgerTests {
     Test Set 2 - Checking Path constraints
      */
 
-    // todo: can test created paths against PathConstraints to check if Path builder is working
-    // todo: what happens if primary state is specified in the additionalStateConstraints, would the primary state satisfy the requirement - is that a problem, or is it just duplication of the primary multiplicityConstraints
+    // todo: can test created paths against PathConstraints to check if Path builder is working - finish
 
     // set up PathConstraints that require
     //    PC1:  Command1, StatusA1, 1 to unbounded Inputs of type B, 1 to 2 type C
@@ -125,7 +124,6 @@ class ContractUtilsLedgerTests {
 
     @BelongsToContract(TestContract2::class)
     class TestState2D(override val participants: List<AbstractParty> = listOf()) : ContractState
-
 
     class TestContract2 : Contract {
         companion object {
@@ -182,10 +180,7 @@ class ContractUtilsLedgerTests {
                 "Input status must have a list of PathConstraints defined." using (allowedPaths != null)
                 "txPath must be allowed by PathConstraints for inputStatus $inputStatus" using verifyPath(txPath, allowedPaths!!)
             }
-
-}
-
-
+        }
     }
 
     @Test

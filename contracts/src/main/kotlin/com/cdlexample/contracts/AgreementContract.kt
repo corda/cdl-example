@@ -37,7 +37,6 @@ class AgreementContract : Contract {
         verifyLinearIDConstraints(tx)
         verifySigningConstraints(tx)
         verifyCommandConstraints(tx)
-
     }
 
     // Kotlin version
@@ -121,12 +120,5 @@ class AgreementContract : Contract {
     fun verifySigningConstraints(tx: LedgerTransaction){}
 
     fun verifyCommandConstraints(tx: LedgerTransaction){}
-
-
-
-
-
-
-
 
 }

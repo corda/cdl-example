@@ -21,29 +21,10 @@ data class AgreementState(override val status: AgreementStatus,
                           val rejectionReason: String? = null,
                           val rejectedBy: Party?= null,
                           override val participants: List<AbstractParty> = listOf(buyer, seller),
-                          override val linearId: UniqueIdentifier = UniqueIdentifier()) : LinearState, StatusState {
-
-
-}
-
-
+                          override val linearId: UniqueIdentifier = UniqueIdentifier()) : LinearState, StatusState
 
 enum class AgreementStatus: Status{
     PROPOSED,
     REJECTED,
     AGREED
 }
-
-
-//interface AgreementStatus {
-//    class Proposed: Status
-//    class Rejected: Status
-//    class Agreed: Status
-//
-//}
-
-//@CordaSerializable
-//interface Status
-
-
-//data class Status<T: Status>(val value: T)
