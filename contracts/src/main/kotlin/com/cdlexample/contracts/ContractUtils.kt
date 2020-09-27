@@ -41,7 +41,12 @@ class PathConstraint<T: ContractState>(val command: CommandData,
     infix fun doesNotAllow(p: Path<T>): Boolean = !this.allows(p)
 
     private fun additionalStatesCheck(constraints: Set<AdditionalStatesConstraint>, additionalStates: Set<AdditionalStates>) :Boolean =
-             additionalStatesConstraints.all { c -> additionalStates.any { s -> c isSatisfiedBy s }}
+//             additionalStatesConstraints.all { c -> additionalStates.any { s -> c isSatisfiedBy s}}
+            // todo: double check the logic for dealing with zero multiplicities
+            additionalStatesConstraints.all { c -> additionalStates.any { s -> c isSatisfiedBy s} ||
+                                                                            c.requiredNumberOfStates.from == 0 && additionalStates.none { it.clazz == c.clazz }
+            }
+
 }
 
 class AdditionalStatesConstraint(val type: AdditionalStatesType ,val clazz: Class<out ContractState>, val requiredNumberOfStates: MultiplicityConstraint = MultiplicityConstraint()) {
