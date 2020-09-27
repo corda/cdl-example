@@ -21,7 +21,7 @@ class AdditionalStates(val type: AdditionalStatesType, val clazz: Class<out Cont
 
 enum class AdditionalStatesType {INPUT, OUTPUT, REFERENCE}
 
-
+// todo: consider adding an exclusive flag, so that only the additional states specified in the PathConstraint are allowed to be in the transaction
 
 class PathConstraint<T: ContractState>(val command: CommandData,
                      val outputStatus: Status?,

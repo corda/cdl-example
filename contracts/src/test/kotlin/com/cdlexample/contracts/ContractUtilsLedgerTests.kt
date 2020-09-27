@@ -21,9 +21,6 @@ class ContractUtilsLedgerTests {
     val charlie = TestIdentity(CordaX500Name("Charlie SA", "Paris", "FR"))
     private val ledgerServices = MockServices(alice, networkParameters = testNetworkParameters(minimumPlatformVersion = 4))
 
-
-
-
     /*
     Test Set 1 - checking getPath generates the correct path, using the debugger to inspect the created object
      */
@@ -108,7 +105,7 @@ class ContractUtilsLedgerTests {
     // set up PathConstraints that require
     //    PC1:  Command1, StatusA1, 1 to unbounded Inputs of type B, 1 to 2 type C
     //    PC2:  Command1, StatusA1, one references of type B
-    //    PC3:  Command2, StatusA2, 2 outputs of type C, one output of type D
+    //    PC3:  Command2, StatusA2, 2 outputs of type C, 0 to 1 output of type D
     //    PC4:  Command2, StatusA2, 2 to unbounded inputs of B, one reference of C, 1 output of B
 
     @BelongsToContract(TestContract2::class)
@@ -146,7 +143,6 @@ class ContractUtilsLedgerTests {
             verifyPathConstraints(tx, TestState2A::class.java)
         }
 
-// todo: why do the statuses need qualifying
         fun <T: StatusState> verifyPathConstraints(tx: LedgerTransaction, clazz: Class<T>) {
 
             val commandValue = tx.commands.requireSingleCommand<Commands>().value
@@ -154,19 +150,23 @@ class ContractUtilsLedgerTests {
 
             val pathConstraintsMap = mapOf<Status?, List<PathConstraint<T>>>(
                     TestState2A.TestStatus.STATUSA1 to listOf(
+                            // PC1
                             PathConstraint(Commands.Command1(), TestState2A.TestStatus.STATUSA1, additionalStatesConstraints = setOf(
                                     AdditionalStatesConstraint(AdditionalStatesType.INPUT, TestState2B::class.java, MultiplicityConstraint(1, false)),
                                     AdditionalStatesConstraint(AdditionalStatesType.INPUT, TestState2C::class.java, MultiplicityConstraint(1, true, 2))
                             )),
+                            // PC2
                             PathConstraint(Commands.Command1(), TestState2A.TestStatus.STATUSA1, additionalStatesConstraints = setOf(
                                     AdditionalStatesConstraint(AdditionalStatesType.REFERENCE, TestState2B::class.java)
                             ))
                     ),
                     TestState2A.TestStatus.STATUSA2 to listOf(
+                            // PC3
                             PathConstraint(Commands.Command2(), TestState2A.TestStatus.STATUSA2, additionalStatesConstraints = setOf(
                                     AdditionalStatesConstraint(AdditionalStatesType.OUTPUT, TestState2C::class.java, MultiplicityConstraint(2,true)),
-                                    AdditionalStatesConstraint(AdditionalStatesType.OUTPUT, TestState2D::class.java)
+                                    AdditionalStatesConstraint(AdditionalStatesType.OUTPUT, TestState2D::class.java, MultiplicityConstraint(0, true, 1))
                             )),
+                            // PC4
                             PathConstraint(Commands.Command2(), TestState2A.TestStatus.STATUSA2, additionalStatesConstraints = setOf(
                                     AdditionalStatesConstraint(AdditionalStatesType.INPUT, TestState2B::class.java, MultiplicityConstraint(2, false)),
                                     AdditionalStatesConstraint(AdditionalStatesType.REFERENCE, TestState2C::class.java),
@@ -186,21 +186,18 @@ class ContractUtilsLedgerTests {
 }
 
 
-
-
-
     }
 
     @Test
     fun `check various PathConstraints with AdditionalStates`() {
 
         val testState2A1 = TestState2A(TestState2A.TestStatus.STATUSA1)
+        val testState2A2 = TestState2A(TestState2A.TestStatus.STATUSA2)
         val testState2B1 = TestState2B()
         val testState2C1 = TestState2C()
         val testState2D1 = TestState2D()
 
         ledgerServices.ledger {
-
 
             // happy Path for PC1
             transaction {
@@ -219,7 +216,7 @@ class ContractUtilsLedgerTests {
                 verifies()
             }
 
-            // happy Path for PC1 fails because too many type C inputs
+            // PC1 fails because too many type C inputs
             transaction {
 
                 command(alice.publicKey, TestContract2.Commands.Command1())
@@ -237,7 +234,69 @@ class ContractUtilsLedgerTests {
                 failsWith("txPath must be allowed by PathConstraints for inputStatus STATUSA1")
             }
 
+            // PC1 fails because only type B additionalStates is satisfied and not type C
+            transaction {
 
+                command(alice.publicKey, TestContract2.Commands.Command1())
+
+                input(TestContract2.ID, testState2A1)
+                input(TestContract2.ID, testState2B1)
+                input(TestContract2.ID, testState2B1)
+                input(TestContract2.ID, testState2B1)
+
+                output(TestContract2.ID, testState2A1)
+
+                failsWith("txPath must be allowed by PathConstraints for inputStatus STATUSA1")
+            }
+
+            // PC2 happy Path - but with inputs that fail PC1
+            transaction {
+
+                command(alice.publicKey, TestContract2.Commands.Command1())
+
+                input(TestContract2.ID, testState2A1)
+                input(TestContract2.ID, testState2B1)
+                input(TestContract2.ID, testState2B1)
+                input(TestContract2.ID, testState2B1)
+                input(TestContract2.ID, testState2C1)
+                input(TestContract2.ID, testState2C1)
+                input(TestContract2.ID, testState2C1)
+
+                reference(TestContract2.ID, testState2B1)
+
+                output(TestContract2.ID, testState2A1)
+
+                verifies()
+            }
+
+            // PC3 happy Path - no type D  todo: zero states not working
+            transaction {
+
+                input(TestContract2.ID, testState2A2)
+                command(alice.publicKey, TestContract2.Commands.Command2())
+
+                output(TestContract2.ID, testState2C1)
+                output(TestContract2.ID, testState2C1)
+
+                output(TestContract2.ID, testState2A2)
+
+                verifies()
+            }
+
+            // PC3 happy Path - with type D
+            transaction {
+
+                input(TestContract2.ID, testState2A2)
+                command(alice.publicKey, TestContract2.Commands.Command2())
+
+                output(TestContract2.ID, testState2C1)
+                output(TestContract2.ID, testState2C1)
+                output(TestContract2.ID, testState2D1)
+
+                output(TestContract2.ID, testState2A2)
+
+                verifies()
+            }
 
 
         }
