@@ -143,6 +143,7 @@ class ContractUtilsLedgerTests {
         fun <T: StatusState> verifyPathConstraints(tx: LedgerTransaction, clazz: Class<T>) {
 
             val commandValue = tx.commands.requireSingleCommand<Commands>().value
+            // todo: Is it possible to re-write this so commandValue doesn't need to be passed to getPath (challenge: the commands are defined as an interface outside of Ultils and may or maynot be defined in the Contract Class using Utlis)
             val txPath = getPath(tx, clazz, commandValue)
 
             val pathConstraintsMap = mapOf<Status?, List<PathConstraint<T>>>(
