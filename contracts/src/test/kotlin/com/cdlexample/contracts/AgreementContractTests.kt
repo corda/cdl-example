@@ -23,7 +23,7 @@ class AgreementContractTests {
         val proposed1 = AgreementState(AgreementStatus.PROPOSED,
                 alice.party, bob.party, "One bunch of Bananas", Amount(10, Currency.getInstance("GBP")), alice.party, bob.party)
         val rejected = AgreementState(AgreementStatus.REJECTED,
-                alice.party, bob.party, "One bunch of Bananas", Amount(10, Currency.getInstance("GBP")), alice.party, bob.party, "Run out of Bananas", alice.party)
+                alice.party, bob.party, "One bunch of Bananas", Amount(10, Currency.getInstance("GBP")), alice.party, bob.party, "Run out of Bananas", bob.party)
         val proposed2 = AgreementState(AgreementStatus.PROPOSED,
                 alice.party, bob.party, "One bag of grapes", Amount(8, Currency.getInstance("GBP")), bob.party, alice.party)
         val agreed = AgreementState(AgreementStatus.AGREED,
@@ -37,13 +37,13 @@ class AgreementContractTests {
             }
             transaction {
                 input(AgreementContract.ID, proposed1)
-                command(alice.publicKey, AgreementContract.Commands.Reject())
+                command(bob.publicKey, AgreementContract.Commands.Reject())
                 output(AgreementContract.ID, rejected)
                 verifies()
             }
             transaction {
                 input(AgreementContract.ID, rejected)
-                command(alice.publicKey, AgreementContract.Commands.Repropose())
+                command(bob.publicKey, AgreementContract.Commands.Repropose())
                 output(AgreementContract.ID, proposed2)
                 verifies()
             }
@@ -55,7 +55,7 @@ class AgreementContractTests {
             }
             transaction {
                 input(AgreementContract.ID, agreed)
-                command(alice.publicKey, AgreementContract.Commands.Complete())
+                command(bob.publicKey, AgreementContract.Commands.Complete())
                 verifies()
             }
         }
@@ -365,4 +365,6 @@ class AgreementContractTests {
             }
         }
     }
+
+    // todo: write signature constraint tests
 }

@@ -85,7 +85,7 @@ class AgreementContract : Contract {
             }
         }
     }
-
+    // todo: add full stops into error messages
     fun verifyStatusConstraints(tx: LedgerTransaction){
         val allStates = tx.inputsOfType<AgreementState>() + tx.outputsOfType<AgreementState>()
 
@@ -103,6 +103,7 @@ class AgreementContract : Contract {
                     requireThat {
                         "When status is Rejected rejectionReason must not be null" using (s.rejectionReason != null)
                         "When status is Rejected rejectedBy must not be null" using (s.rejectedBy != null)
+                        "When the Status is Rejected rejectedBy must be the buyer or seller" using (listOf(s.buyer, s.seller).contains(s.rejectedBy))
                     }
                 }
                 AGREED -> {}
@@ -112,7 +113,32 @@ class AgreementContract : Contract {
 
     fun verifyLinearIDConstraints(tx: LedgerTransaction){}
 
-    fun verifySigningConstraints(tx: LedgerTransaction){}
+    fun verifySigningConstraints(tx: LedgerTransaction){
+
+        val command = tx.commands.requireSingleCommand<AgreementContract.Commands>()
+        val inputStates = tx.inputsOfType<AgreementState>()
+        val inputState = if (inputStates.isNotEmpty()) inputStates.single() else null
+        val outputStates = tx.outputsOfType<AgreementState>()
+        val outputState = if (outputStates.isNotEmpty()) outputStates.single() else null
+
+        when (command.value){
+            is Commands.Propose -> {
+                requireThat { "When Command is Propose the output.proposer should sign." using(command.signers.contains(outputState?.proposer?.owningKey)) }
+            }
+            is Commands.Reject -> {
+                requireThat {"When the Command is Reject the output.rejectedBy Party must sign." using(command.signers.contains(outputState?.rejectedBy?.owningKey) )}
+            }
+            is Commands.Repropose -> {
+                requireThat {"When the Command is Repropose the output.proposer must sign." using (command.signers.contains(outputState?.proposer?.owningKey))}
+            }
+            is Commands.Agree -> {
+                requireThat {"When the Command is Agree the input.consenter must sign." using (command.signers.contains(inputState?.consenter?.owningKey))}
+            }
+            is Commands.Complete -> {
+                requireThat {"When the command is Complete the input.seller must sign." using (command.signers.contains(inputState?.seller?.owningKey))}
+            }
+        }
+    }
 
     fun verifyCommandConstraints(tx: LedgerTransaction){}
 
