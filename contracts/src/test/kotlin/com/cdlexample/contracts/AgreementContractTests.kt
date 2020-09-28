@@ -61,6 +61,8 @@ class AgreementContractTests {
         }
     }
 
+
+    // todo: should this test move to ContractUtilsTest as the functions called are now in Contractutils
     @Test
     fun `check all inputs of type AgreementState have the same Status`() {
 
@@ -99,7 +101,7 @@ class AgreementContractTests {
     }
 
     @Test
-    fun `check non happy transition paths`() {
+    fun `check paths constraints`() {
 
         val proposedState = AgreementState(AgreementStatus.PROPOSED,
                 alice.party, bob.party, "Some grapes", Amount(10, Currency.getInstance("GBP")), alice.party, bob.party)
@@ -307,7 +309,7 @@ class AgreementContractTests {
     }
 
     @Test
-    fun `check status Constraints`() {
+    fun `check status constraints`() {
 
         val proposed1 = AgreementState(AgreementStatus.PROPOSED,
                 alice.party, bob.party, "Some grapes", Amount(10, Currency.getInstance("GBP")), alice.party, bob.party)
@@ -366,5 +368,120 @@ class AgreementContractTests {
         }
     }
 
-    // todo: write signature constraint tests
+    // todo: write signing constraint tests
+
+    @Test
+    fun `check signing constraints`() {
+
+        val proposed1 = AgreementState(AgreementStatus.PROPOSED,
+                alice.party, bob.party, "One bunch of Bananas", Amount(10, Currency.getInstance("GBP")), alice.party, bob.party)
+        val rejected = AgreementState(AgreementStatus.REJECTED,
+                alice.party, bob.party, "One bunch of Bananas", Amount(10, Currency.getInstance("GBP")), alice.party, bob.party, "Run out of Bananas", bob.party)
+        val proposed2 = AgreementState(AgreementStatus.PROPOSED,
+                alice.party, bob.party, "One bag of grapes", Amount(8, Currency.getInstance("GBP")), bob.party, alice.party)
+        val agreed = AgreementState(AgreementStatus.AGREED,
+                alice.party, bob.party, "One bag of grapes", Amount(8, Currency.getInstance("GBP")), bob.party, alice.party)
+
+        // For each Command try the following signers:
+        //  - other Participant (fails)
+        //  - a non participant (fails)
+        //  - correct participant and a non participant (verifies)
+
+        ledgerServices.ledger {
+
+            // Propose (alice should sign)
+            transaction {
+                command(bob.publicKey, AgreementContract.Commands.Propose())
+                output(AgreementContract.ID, proposed1)
+                failsWith("When Command is Propose the output.proposer should sign.")
+            }
+            transaction {
+                command(charlie.publicKey, AgreementContract.Commands.Propose())
+                output(AgreementContract.ID, proposed1)
+                failsWith("When Command is Propose the output.proposer should sign.")
+            }
+            transaction {
+                command(listOf(alice.publicKey, charlie.publicKey), AgreementContract.Commands.Propose())
+                output(AgreementContract.ID, proposed1)
+                verifies()
+            }
+
+            // Reject (Bob should sign)
+            transaction {
+                input(AgreementContract.ID, proposed1)
+                command(alice.publicKey, AgreementContract.Commands.Reject())
+                output(AgreementContract.ID, rejected)
+                failsWith("When the Command is Reject the output.rejectedBy Party must sign.")
+            }
+            transaction {
+                input(AgreementContract.ID, proposed1)
+                command(charlie.publicKey, AgreementContract.Commands.Reject())
+                output(AgreementContract.ID, rejected)
+                failsWith("When the Command is Reject the output.rejectedBy Party must sign.")
+            }
+            transaction {
+                input(AgreementContract.ID, proposed1)
+                command(listOf(bob.publicKey, charlie.publicKey), AgreementContract.Commands.Reject())
+                output(AgreementContract.ID, rejected)
+                verifies()
+            }
+
+            // Repropose (Bob should sign)
+            transaction {
+                input(AgreementContract.ID, rejected)
+                command(alice.publicKey, AgreementContract.Commands.Repropose())
+                output(AgreementContract.ID, proposed2)
+                failsWith("When the Command is Repropose the output.proposer must sign.")
+            }
+            transaction {
+                input(AgreementContract.ID, rejected)
+                command(charlie.publicKey, AgreementContract.Commands.Repropose())
+                output(AgreementContract.ID, proposed2)
+                failsWith("When the Command is Repropose the output.proposer must sign.")
+            }
+            transaction {
+                input(AgreementContract.ID, rejected)
+                command(listOf(bob.publicKey, charlie.publicKey), AgreementContract.Commands.Repropose())
+                output(AgreementContract.ID, proposed2)
+                verifies()
+            }
+
+            // Agree (Alice should sign)
+            transaction {
+                input(AgreementContract.ID, proposed2)
+                command(bob.publicKey, AgreementContract.Commands.Agree())
+                output(AgreementContract.ID, agreed)
+                failsWith("When the Command is Agree the input.consenter must sign.")
+            }
+            transaction {
+                input(AgreementContract.ID, proposed2)
+                command(charlie.publicKey, AgreementContract.Commands.Agree())
+                output(AgreementContract.ID, agreed)
+                failsWith("When the Command is Agree the input.consenter must sign.")
+            }
+            transaction {
+                input(AgreementContract.ID, proposed2)
+                command(listOf(alice.publicKey, charlie.publicKey), AgreementContract.Commands.Agree())
+                output(AgreementContract.ID, agreed)
+                verifies()
+            }
+
+            // Complete (Bob should sign)
+            transaction {
+                input(AgreementContract.ID, agreed)
+                command(alice.publicKey, AgreementContract.Commands.Complete())
+                failsWith("When the command is Complete the input.seller must sign.")
+            }
+            transaction {
+                input(AgreementContract.ID, agreed)
+                command(charlie.publicKey, AgreementContract.Commands.Complete())
+                failsWith("When the command is Complete the input.seller must sign.")
+            }
+            transaction {
+                input(AgreementContract.ID, agreed)
+                command(listOf(bob.publicKey, charlie.publicKey), AgreementContract.Commands.Complete())
+                verifies()
+            }
+        }
+    }
 }
