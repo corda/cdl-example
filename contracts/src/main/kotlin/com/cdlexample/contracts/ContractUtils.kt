@@ -6,11 +6,7 @@ import net.corda.core.contracts.*
 import net.corda.core.transactions.LedgerTransaction
 
 
-// todo: how to protect against substituting a different state type with the same stauts. need to lock the Path and Path constraint to a particular state type - currently could generate a Path of type T
-
-// todo: make types inherit from StatusState, rather than ContractState
-
-class Path<T: ContractState>(val command: CommandData,
+class Path<T: StatusState>(val command: CommandData,
                 val outputStatus: Status?,
                 val numberOfInputStates: Int,
                 val numberOfOutputStates: Int,
@@ -22,7 +18,7 @@ enum class AdditionalStatesType {INPUT, OUTPUT, REFERENCE}
 
 // todo: consider adding an exclusive flag, so that only the additional states specified in the PathConstraint are allowed to be in the transaction
 
-class PathConstraint<T: ContractState>(val command: CommandData,
+class PathConstraint<T: StatusState>(val command: CommandData,
                      val outputStatus: Status?,
                      val inputMultiplicityConstraint: MultiplicityConstraint = MultiplicityConstraint(),
                      val outputMultiplicityConstraint: MultiplicityConstraint = MultiplicityConstraint(),
@@ -40,8 +36,7 @@ class PathConstraint<T: ContractState>(val command: CommandData,
     infix fun doesNotAllow(p: Path<T>): Boolean = !this.allows(p)
 
     private fun additionalStatesCheck(constraints: Set<AdditionalStatesConstraint>, additionalStates: Set<AdditionalStates>) :Boolean =
-            // todo: double check the logic for dealing with zero multiplicities
-            additionalStatesConstraints.all { c -> additionalStates.any { s -> c isSatisfiedBy s} ||
+            constraints.all { c -> additionalStates.any { s -> c isSatisfiedBy s} ||
                                                                             c.requiredNumberOfStates.from == 0 && additionalStates.none { it.clazz == c.clazz }
             }
 }
@@ -69,7 +64,7 @@ class MultiplicityConstraint(val from: Int = 1, val bounded: Boolean = true, val
     infix fun doesNotAllow(numberOfStates: Int): Boolean = !this.allows(numberOfStates)
 }
 
-fun <T: ContractState> verifyPath(p: Path<T>, pathConstraintList: List<PathConstraint<T>>): Boolean =
+fun <T: StatusState> verifyPath(p: Path<T>, pathConstraintList: List<PathConstraint<T>>): Boolean =
         pathConstraintList.any { pc -> pc allows p }
 
 

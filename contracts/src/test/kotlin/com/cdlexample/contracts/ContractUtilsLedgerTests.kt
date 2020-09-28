@@ -53,6 +53,7 @@ class ContractUtilsLedgerTests {
         override fun verify(tx: LedgerTransaction) {
 
             val command = tx.commands.requireSingleCommand<TestContract1.Commands>().value
+            // Place a checkpoint at the end of the pth function to see what's generated
             val txPath = getPath(tx, TestState1A::class.java, command)
         }
 
@@ -99,13 +100,11 @@ class ContractUtilsLedgerTests {
     Test Set 2 - Checking Path constraints
      */
 
-    // todo: can test created paths against PathConstraints to check if Path builder is working - finish
-
     // set up PathConstraints that require
     //    PC1:  Command1, StatusA1, 1 to unbounded Inputs of type B, 1 to 2 type C
     //    PC2:  Command1, StatusA1, one references of type B
     //    PC3:  Command2, StatusA2, 2 outputs of type C, 0 to 1 output of type D
-    //    PC4:  Command2, StatusA2, 2 to unbounded inputs of B, one reference of C, 1 output of B
+    //    PC4:  Command2, StatusA2, 2 to unbounded inputs of B, one reference of C, 1 output of D
 
     @BelongsToContract(TestContract2::class)
     class TestState2A(override val status: Status?, override val participants: List<AbstractParty> = listOf()) : ContractState, StatusState {
@@ -197,105 +196,141 @@ class ContractUtilsLedgerTests {
             // happy Path for PC1
             transaction {
 
-                command(alice.publicKey, TestContract2.Commands.Command1())
-
+                // Primary
                 input(TestContract2.ID, testState2A1)
-                input(TestContract2.ID, testState2B1)
-                input(TestContract2.ID, testState2B1)
-                input(TestContract2.ID, testState2B1)
-                input(TestContract2.ID, testState2C1)
-                input(TestContract2.ID, testState2C1)
-
+                command(alice.publicKey, TestContract2.Commands.Command1())
                 output(TestContract2.ID, testState2A1)
+                // Additional
+                input(TestContract2.ID, testState2B1)
+                input(TestContract2.ID, testState2B1)
+                input(TestContract2.ID, testState2B1)
+                input(TestContract2.ID, testState2C1)
+                input(TestContract2.ID, testState2C1)
 
                 verifies()
             }
 
             // PC1 fails because too many type C inputs
             transaction {
-
-                command(alice.publicKey, TestContract2.Commands.Command1())
-
+                // Primary
                 input(TestContract2.ID, testState2A1)
-                input(TestContract2.ID, testState2B1)
-                input(TestContract2.ID, testState2B1)
-                input(TestContract2.ID, testState2B1)
-                input(TestContract2.ID, testState2C1)
-                input(TestContract2.ID, testState2C1)
-                input(TestContract2.ID, testState2C1)
-
+                command(alice.publicKey, TestContract2.Commands.Command1())
                 output(TestContract2.ID, testState2A1)
+                // Additional
+                input(TestContract2.ID, testState2B1)
+                input(TestContract2.ID, testState2B1)
+                input(TestContract2.ID, testState2B1)
+                input(TestContract2.ID, testState2C1)
+                input(TestContract2.ID, testState2C1)
+                input(TestContract2.ID, testState2C1)
 
                 failsWith("txPath must be allowed by PathConstraints for inputStatus STATUSA1")
             }
 
             // PC1 fails because only type B additionalStates is satisfied and not type C
             transaction {
-
-                command(alice.publicKey, TestContract2.Commands.Command1())
-
+                // Primary
                 input(TestContract2.ID, testState2A1)
-                input(TestContract2.ID, testState2B1)
-                input(TestContract2.ID, testState2B1)
-                input(TestContract2.ID, testState2B1)
-
+                command(alice.publicKey, TestContract2.Commands.Command1())
                 output(TestContract2.ID, testState2A1)
+                // Additional
+                input(TestContract2.ID, testState2B1)
+                input(TestContract2.ID, testState2B1)
+                input(TestContract2.ID, testState2B1)
 
                 failsWith("txPath must be allowed by PathConstraints for inputStatus STATUSA1")
             }
 
             // PC2 happy Path - but with inputs that fail PC1
             transaction {
-
-                command(alice.publicKey, TestContract2.Commands.Command1())
-
+                // Primary
                 input(TestContract2.ID, testState2A1)
-                input(TestContract2.ID, testState2B1)
-                input(TestContract2.ID, testState2B1)
-                input(TestContract2.ID, testState2B1)
-                input(TestContract2.ID, testState2C1)
-                input(TestContract2.ID, testState2C1)
-                input(TestContract2.ID, testState2C1)
-
-                reference(TestContract2.ID, testState2B1)
-
+                command(alice.publicKey, TestContract2.Commands.Command1())
                 output(TestContract2.ID, testState2A1)
+                // Additional
+                reference(TestContract2.ID, testState2B1)
+                input(TestContract2.ID, testState2B1)
+                input(TestContract2.ID, testState2B1)
+                input(TestContract2.ID, testState2B1)
+                input(TestContract2.ID, testState2C1)
+                input(TestContract2.ID, testState2C1)
+                input(TestContract2.ID, testState2C1)
 
                 verifies()
             }
 
-            // PC3 happy Path - no type D  todo: zero states not working
+            // PC3 fail - no type D
             transaction {
-
+                // Primary
                 input(TestContract2.ID, testState2A2)
                 command(alice.publicKey, TestContract2.Commands.Command2())
-
-                output(TestContract2.ID, testState2C1)
-                output(TestContract2.ID, testState2C1)
-
                 output(TestContract2.ID, testState2A2)
+                // Additional
+                output(TestContract2.ID, testState2C1)
+                output(TestContract2.ID, testState2C1)
 
                 verifies()
             }
 
             // PC3 happy Path - with type D
             transaction {
-
+                // Primary
                 input(TestContract2.ID, testState2A2)
                 command(alice.publicKey, TestContract2.Commands.Command2())
-
+                output(TestContract2.ID, testState2A2)
+                // Additional
                 output(TestContract2.ID, testState2C1)
                 output(TestContract2.ID, testState2C1)
                 output(TestContract2.ID, testState2D1)
 
+                verifies()
+            }
+
+            // PC3 fails - with too many type D
+            transaction {
+                // Primary
+                input(TestContract2.ID, testState2A2)
+                command(alice.publicKey, TestContract2.Commands.Command2())
                 output(TestContract2.ID, testState2A2)
+                // Additional
+                output(TestContract2.ID, testState2C1)
+                output(TestContract2.ID, testState2C1)
+                output(TestContract2.ID, testState2D1)
+                output(TestContract2.ID, testState2D1)
+
+                failsWith("txPath must be allowed by PathConstraints for inputStatus STATUSA2")
+            }
+
+            // PC4 happy Path
+            transaction {
+                // Primary
+                input(TestContract2.ID, testState2A2)
+                command(alice.publicKey, TestContract2.Commands.Command2())
+                output(TestContract2.ID, testState2A2)
+                // Additional
+                input(TestContract2.ID, testState2B1)
+                input(TestContract2.ID, testState2B1)
+                input(TestContract2.ID, testState2B1)
+                input(TestContract2.ID, testState2B1)
+                reference(TestContract2.ID, testState2C1)
+                output(TestContract2.ID, testState2D1)
 
                 verifies()
             }
 
+            // PC4 fails - not enough type B
+            transaction {
+                // Primary
+                input(TestContract2.ID, testState2A2)
+                command(alice.publicKey, TestContract2.Commands.Command2())
+                output(TestContract2.ID, testState2A2)
+                // Additional
+                input(TestContract2.ID, testState2B1)
+                reference(TestContract2.ID, testState2C1)
+                output(TestContract2.ID, testState2D1)
 
+                failsWith("txPath must be allowed by PathConstraints for inputStatus STATUSA2")
+            }
         }
     }
-
-
 }

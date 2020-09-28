@@ -2,7 +2,6 @@ package com.cdlexample.contracts
 
 import com.cdlexample.states.AgreementState
 import com.cdlexample.states.AgreementStatus.*
-import com.cdlexample.states.DummyState
 import com.cdlexample.states.Status
 import com.cdlexample.states.StatusState
 import net.corda.core.contracts.*
@@ -48,10 +47,6 @@ class AgreementContract : Contract {
         val commandValue = tx.commands.requireSingleCommand<AgreementContract.Commands>().value
 
         val txPath = getPath(tx, clazz, commandValue)
-
-        // todo: build txPath builder in Contract utils - including the additional states builder (needed before can merge back into master)
-        // todo: how much of verify path constraints can be moved to ContractUtils
-
 
         val pathMap = mapOf<Status?, List<PathConstraint<T>>>(
             null to listOf(

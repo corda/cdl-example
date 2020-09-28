@@ -1,6 +1,7 @@
 package com.cdlexample.contracts
 
 import com.cdlexample.states.Status
+import com.cdlexample.states.StatusState
 import net.corda.core.contracts.BelongsToContract
 import net.corda.core.contracts.CommandData
 import net.corda.core.contracts.Contract
@@ -12,7 +13,7 @@ import org.junit.Test
 class ContractUtilsTests() {
 
     @BelongsToContract(TestContract::class)
-    class TestStateA(override val participants: List<AbstractParty> = listOf()) : ContractState {
+    class TestStateA(override val status: Status?, override val participants: List<AbstractParty> = listOf()) : StatusState {
 
         enum class TestStatus : Status {
             STATUSA1,
