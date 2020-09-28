@@ -3,6 +3,7 @@ package com.cdlexample.contracts
 import com.cdlexample.states.AgreementState
 import com.cdlexample.states.AgreementStatus
 import net.corda.core.contracts.Amount
+import net.corda.core.contracts.UniqueIdentifier
 import net.corda.core.identity.CordaX500Name
 import net.corda.testing.core.TestIdentity
 import net.corda.testing.node.MockServices
@@ -20,14 +21,16 @@ class AgreementContractTests {
     @Test
     fun `check the happy path`() {
 
+        val linearId = UniqueIdentifier()
+
         val proposed1 = AgreementState(AgreementStatus.PROPOSED,
-                alice.party, bob.party, "One bunch of Bananas", Amount(10, Currency.getInstance("GBP")), alice.party, bob.party)
+                alice.party, bob.party, "One bunch of Bananas", Amount(10, Currency.getInstance("GBP")), alice.party, bob.party, linearId = linearId)
         val rejected = AgreementState(AgreementStatus.REJECTED,
-                alice.party, bob.party, "One bunch of Bananas", Amount(10, Currency.getInstance("GBP")), alice.party, bob.party, "Run out of Bananas", bob.party)
+                alice.party, bob.party, "One bunch of Bananas", Amount(10, Currency.getInstance("GBP")), alice.party, bob.party, "Run out of Bananas", bob.party, linearId = linearId)
         val proposed2 = AgreementState(AgreementStatus.PROPOSED,
-                alice.party, bob.party, "One bag of grapes", Amount(8, Currency.getInstance("GBP")), bob.party, alice.party)
+                alice.party, bob.party, "One bag of grapes", Amount(8, Currency.getInstance("GBP")), bob.party, alice.party, linearId = linearId)
         val agreed = AgreementState(AgreementStatus.AGREED,
-                alice.party, bob.party, "One bag of grapes", Amount(8, Currency.getInstance("GBP")), bob.party, alice.party)
+                alice.party, bob.party, "One bag of grapes", Amount(8, Currency.getInstance("GBP")), bob.party, alice.party, linearId = linearId)
 
         ledgerServices.ledger {
             transaction {
@@ -66,10 +69,12 @@ class AgreementContractTests {
     @Test
     fun `check all inputs of type AgreementState have the same Status`() {
 
+
+        val linearId = UniqueIdentifier()
         val input1 = AgreementState(AgreementStatus.PROPOSED,
-                alice.party, bob.party, "Some grapes", Amount(10, Currency.getInstance("GBP")), alice.party, bob.party)
-        val input2 = AgreementState(AgreementStatus.PROPOSED, alice.party, bob.party, "Some more grapes", Amount(10, Currency.getInstance("GBP")), alice.party, bob.party)
-        val input3 = AgreementState(AgreementStatus.AGREED, alice.party, bob.party, "yet more grapes", Amount(10, Currency.getInstance("GBP")), alice.party, bob.party)
+                alice.party, bob.party, "Some grapes", Amount(10, Currency.getInstance("GBP")), alice.party, bob.party, linearId = linearId)
+        val input2 = AgreementState(AgreementStatus.PROPOSED, alice.party, bob.party, "Some more grapes", Amount(10, Currency.getInstance("GBP")), alice.party, bob.party, linearId = linearId)
+        val input3 = AgreementState(AgreementStatus.AGREED, alice.party, bob.party, "yet more grapes", Amount(10, Currency.getInstance("GBP")), alice.party, bob.party, linearId = linearId)
 
         ledgerServices.ledger {
             transaction {
@@ -85,9 +90,10 @@ class AgreementContractTests {
     @Test
     fun `check all outputs of type AgreementState have the same Status`() {
 
-        val output1 = AgreementState(AgreementStatus.PROPOSED, alice.party, bob.party, "Some grapes", Amount(10, Currency.getInstance("GBP")), alice.party, bob.party)
-        val output2 = AgreementState(AgreementStatus.PROPOSED, alice.party, bob.party, "Some more grapes", Amount(10, Currency.getInstance("GBP")), alice.party, bob.party)
-        val output3 = AgreementState(AgreementStatus.AGREED, alice.party, bob.party, "yet more grapes", Amount(10, Currency.getInstance("GBP")), alice.party, bob.party)
+        val linearId = UniqueIdentifier()
+        val output1 = AgreementState(AgreementStatus.PROPOSED, alice.party, bob.party, "Some grapes", Amount(10, Currency.getInstance("GBP")), alice.party, bob.party, linearId = linearId)
+        val output2 = AgreementState(AgreementStatus.PROPOSED, alice.party, bob.party, "Some more grapes", Amount(10, Currency.getInstance("GBP")), alice.party, bob.party, linearId = linearId)
+        val output3 = AgreementState(AgreementStatus.AGREED, alice.party, bob.party, "yet more grapes", Amount(10, Currency.getInstance("GBP")), alice.party, bob.party, linearId = linearId)
 
         ledgerServices.ledger {
             transaction {
@@ -103,12 +109,13 @@ class AgreementContractTests {
     @Test
     fun `check paths constraints`() {
 
+        val linearId = UniqueIdentifier()
         val proposedState = AgreementState(AgreementStatus.PROPOSED,
-                alice.party, bob.party, "Some grapes", Amount(10, Currency.getInstance("GBP")), alice.party, bob.party)
+                alice.party, bob.party, "Some grapes", Amount(10, Currency.getInstance("GBP")), alice.party, bob.party, linearId = linearId)
         val rejectedState = AgreementState(AgreementStatus.REJECTED,
-                alice.party, bob.party, "Some more grapes", Amount(10, Currency.getInstance("GBP")), alice.party, bob.party, "I don't like grapes", alice.party)
+                alice.party, bob.party, "Some more grapes", Amount(10, Currency.getInstance("GBP")), alice.party, bob.party, "I don't like grapes", alice.party, linearId = linearId)
         val agreedState = AgreementState(AgreementStatus.AGREED,
-                alice.party, bob.party, "Some more grapes", Amount(10, Currency.getInstance("GBP")), alice.party, bob.party)
+                alice.party, bob.party, "Some more grapes", Amount(10, Currency.getInstance("GBP")), alice.party, bob.party, linearId = linearId)
 
         ledgerServices.ledger {
 
@@ -277,10 +284,11 @@ class AgreementContractTests {
     @Test
     fun `check universal constraints`(){
 
-        val state1 = AgreementState(AgreementStatus.PROPOSED, alice.party, alice.party, "Some grapes", Amount(10, Currency.getInstance("GBP")), alice.party, bob.party)
-        val state2 = AgreementState(AgreementStatus.PROPOSED, alice.party, bob.party, "Some grapes", Amount(10, Currency.getInstance("GBP")), charlie.party, bob.party)
-        val state3 = AgreementState(AgreementStatus.PROPOSED, alice.party, bob.party, "Some grapes", Amount(10, Currency.getInstance("GBP")), alice.party, charlie.party)
-        val state4 = AgreementState(AgreementStatus.PROPOSED, alice.party, bob.party, "Some grapes", Amount(10, Currency.getInstance("GBP")), alice.party, alice.party)
+        val linearId = UniqueIdentifier()
+        val state1 = AgreementState(AgreementStatus.PROPOSED, alice.party, alice.party, "Some grapes", Amount(10, Currency.getInstance("GBP")), alice.party, bob.party, linearId = linearId)
+        val state2 = AgreementState(AgreementStatus.PROPOSED, alice.party, bob.party, "Some grapes", Amount(10, Currency.getInstance("GBP")), charlie.party, bob.party, linearId = linearId)
+        val state3 = AgreementState(AgreementStatus.PROPOSED, alice.party, bob.party, "Some grapes", Amount(10, Currency.getInstance("GBP")), alice.party, charlie.party, linearId = linearId)
+        val state4 = AgreementState(AgreementStatus.PROPOSED, alice.party, bob.party, "Some grapes", Amount(10, Currency.getInstance("GBP")), alice.party, alice.party, linearId = linearId)
 
         ledgerServices.ledger {
 
@@ -311,21 +319,22 @@ class AgreementContractTests {
     @Test
     fun `check status constraints`() {
 
+        val linearId = UniqueIdentifier()
         val proposed1 = AgreementState(AgreementStatus.PROPOSED,
-                alice.party, bob.party, "Some grapes", Amount(10, Currency.getInstance("GBP")), alice.party, bob.party)
+                alice.party, bob.party, "Some grapes", Amount(10, Currency.getInstance("GBP")), alice.party, bob.party, linearId = linearId)
         val proposed2 = AgreementState(AgreementStatus.PROPOSED,
-                alice.party, bob.party, "Some grapes", Amount(10, Currency.getInstance("GBP")), alice.party, bob.party, "I don't like grapes")
+                alice.party, bob.party, "Some grapes", Amount(10, Currency.getInstance("GBP")), alice.party, bob.party, "I don't like grapes", linearId = linearId)
         val proposed3 = AgreementState(AgreementStatus.PROPOSED,
-                alice.party, bob.party, "Some grapes", Amount(10, Currency.getInstance("GBP")), alice.party, bob.party, rejectedBy = alice.party)
+                alice.party, bob.party, "Some grapes", Amount(10, Currency.getInstance("GBP")), alice.party, bob.party, rejectedBy = alice.party, linearId = linearId)
         val proposed4 = AgreementState(AgreementStatus.PROPOSED,
-                alice.party, bob.party, "Some grapes", Amount(10, Currency.getInstance("GBP")), alice.party, bob.party, "I don't like grapes", alice.party)
+                alice.party, bob.party, "Some grapes", Amount(10, Currency.getInstance("GBP")), alice.party, bob.party, "I don't like grapes", alice.party, linearId = linearId)
 
         val rejected1 = AgreementState(AgreementStatus.REJECTED,
-                alice.party, bob.party, "Some more grapes", Amount(10, Currency.getInstance("GBP")), alice.party, bob.party, "I don't like grapes")
+                alice.party, bob.party, "Some more grapes", Amount(10, Currency.getInstance("GBP")), alice.party, bob.party, "I don't like grapes", linearId = linearId)
         val rejected2 = AgreementState(AgreementStatus.REJECTED,
-                alice.party, bob.party, "Some more grapes", Amount(10, Currency.getInstance("GBP")), alice.party, bob.party, rejectedBy = alice.party)
+                alice.party, bob.party, "Some more grapes", Amount(10, Currency.getInstance("GBP")), alice.party, bob.party, rejectedBy = alice.party, linearId = linearId)
         val rejected3 = AgreementState(AgreementStatus.REJECTED,
-                alice.party, bob.party, "Some more grapes", Amount(10, Currency.getInstance("GBP")), alice.party, bob.party)
+                alice.party, bob.party, "Some more grapes", Amount(10, Currency.getInstance("GBP")), alice.party, bob.party, linearId = linearId)
 
 
         ledgerServices.ledger {
@@ -368,19 +377,58 @@ class AgreementContractTests {
         }
     }
 
-    // todo: write signing constraint tests
+    @Test
+    fun `check the linear id constraints path`() {
+
+        val linearId1 = UniqueIdentifier()
+        val linearId2 = UniqueIdentifier()
+        val linearId3 = UniqueIdentifier()
+        val linearId4 = UniqueIdentifier()
+
+        val proposed1 = AgreementState(AgreementStatus.PROPOSED,
+                alice.party, bob.party, "One bunch of Bananas", Amount(10, Currency.getInstance("GBP")), alice.party, bob.party, linearId = linearId1)
+        val rejected = AgreementState(AgreementStatus.REJECTED,
+                alice.party, bob.party, "One bunch of Bananas", Amount(10, Currency.getInstance("GBP")), alice.party, bob.party, "Run out of Bananas", bob.party, linearId = linearId2)
+        val proposed2 = AgreementState(AgreementStatus.PROPOSED,
+                alice.party, bob.party, "One bag of grapes", Amount(8, Currency.getInstance("GBP")), bob.party, alice.party, linearId = linearId3)
+        val agreed = AgreementState(AgreementStatus.AGREED,
+                alice.party, bob.party, "One bag of grapes", Amount(8, Currency.getInstance("GBP")), bob.party, alice.party, linearId = linearId4)
+
+        ledgerServices.ledger {
+
+            transaction {
+                input(AgreementContract.ID, proposed1)
+                command(bob.publicKey, AgreementContract.Commands.Reject())
+                output(AgreementContract.ID, rejected)
+                failsWith("When the Command is Reject the LinearID must not change.")
+            }
+            transaction {
+                input(AgreementContract.ID, rejected)
+                command(bob.publicKey, AgreementContract.Commands.Repropose())
+                output(AgreementContract.ID, proposed2)
+                failsWith("When the Command is Repropose the LinearID must not change.")
+            }
+            transaction {
+                input(AgreementContract.ID, proposed2)
+                command(alice.publicKey, AgreementContract.Commands.Agree())
+                output(AgreementContract.ID, agreed)
+                failsWith("When the Command is Agree the LinearID must not change.")
+            }
+        }
+    }
 
     @Test
     fun `check signing constraints`() {
 
+        val linearId = UniqueIdentifier()
         val proposed1 = AgreementState(AgreementStatus.PROPOSED,
-                alice.party, bob.party, "One bunch of Bananas", Amount(10, Currency.getInstance("GBP")), alice.party, bob.party)
+                alice.party, bob.party, "One bunch of Bananas", Amount(10, Currency.getInstance("GBP")), alice.party, bob.party, linearId = linearId)
         val rejected = AgreementState(AgreementStatus.REJECTED,
-                alice.party, bob.party, "One bunch of Bananas", Amount(10, Currency.getInstance("GBP")), alice.party, bob.party, "Run out of Bananas", bob.party)
+                alice.party, bob.party, "One bunch of Bananas", Amount(10, Currency.getInstance("GBP")), alice.party, bob.party, "Run out of Bananas", bob.party, linearId = linearId)
         val proposed2 = AgreementState(AgreementStatus.PROPOSED,
-                alice.party, bob.party, "One bag of grapes", Amount(8, Currency.getInstance("GBP")), bob.party, alice.party)
+                alice.party, bob.party, "One bag of grapes", Amount(8, Currency.getInstance("GBP")), bob.party, alice.party, linearId = linearId)
         val agreed = AgreementState(AgreementStatus.AGREED,
-                alice.party, bob.party, "One bag of grapes", Amount(8, Currency.getInstance("GBP")), bob.party, alice.party)
+                alice.party, bob.party, "One bag of grapes", Amount(8, Currency.getInstance("GBP")), bob.party, alice.party, linearId = linearId)
 
         // For each Command try the following signers:
         //  - other Participant (fails)
