@@ -29,6 +29,8 @@ class AgreementContract : Contract {
     // does not throw an exception.
     override fun verify(tx: LedgerTransaction) {
 
+        // todo: be clear which sub functions need to pass the class
+
         verifyPathConstraints<AgreementState>(tx)
         verifyPathConstraints(tx, AgreementState::class.java)
         verifyUniversalConstraints(tx)
@@ -164,7 +166,24 @@ class AgreementContract : Contract {
     }
 
     fun verifyCommandConstraints(tx: LedgerTransaction){
-        // todo: add command constraints
-    }
 
+        val command = tx.commands.requireSingleCommand<AgreementContract.Commands>()
+
+        when (command.value){
+            is Commands.Reject -> {
+                // Path Constraints have already checked there is only one input and one output
+                val inputState = tx.inputsOfType<AgreementState>().single()
+                val outputState = tx.outputsOfType<AgreementState>().single()
+                requireThat {"When the command is Reject no properties can change except status, rejectionReason and rejectedBy." using (outputState.copy(status = inputState.status, rejectionReason = inputState.rejectionReason, rejectedBy = inputState.rejectedBy) == inputState)}
+            }
+            is Commands.Agree -> {
+                requireThat {
+                    // Path Constraints have already checked there is only one input and one output
+                    val inputState = tx.inputsOfType<AgreementState>().single()
+                    val outputState = tx.outputsOfType<AgreementState>().single()
+                    requireThat {"When the command is Agree no properties can change except status." using (outputState.copy(status = inputState.status) == inputState)}
+                }
+            }
+        }
+    }
 }

@@ -532,4 +532,65 @@ class AgreementContractTests {
             }
         }
     }
+
+    @Test
+    fun `check the command constraints`() {
+
+        val linearId = UniqueIdentifier()
+
+        val proposed1 = AgreementState(AgreementStatus.PROPOSED,
+                alice.party, bob.party, "One bunch of Bananas", Amount(10, Currency.getInstance("GBP")), alice.party, bob.party, linearId = linearId)
+        val rejected = AgreementState(AgreementStatus.REJECTED,
+                alice.party, bob.party, "Two bunches of Bananas", Amount(10, Currency.getInstance("GBP")), alice.party, bob.party, "Run out of Bananas", bob.party, linearId = linearId)
+        val proposed2 = AgreementState(AgreementStatus.PROPOSED,
+                alice.party, bob.party, "One bag of grapes", Amount(8, Currency.getInstance("GBP")), bob.party, alice.party, linearId = linearId)
+        val agreed1 = AgreementState(AgreementStatus.AGREED,
+                alice.party, bob.party, "Two bags of grapes", Amount(8, Currency.getInstance("GBP")), bob.party, alice.party, linearId = linearId)
+        val agreed2 = AgreementState(AgreementStatus.AGREED,
+                alice.party, bob.party, "One bag of grapes", Amount(5, Currency.getInstance("GBP")), bob.party, alice.party, linearId = linearId)
+        val agreed3 = AgreementState(AgreementStatus.AGREED,
+                alice.party, bob.party, "One bag of grapes", Amount(5, Currency.getInstance("EUR")), bob.party, alice.party, linearId = linearId)
+        val agreed4 = AgreementState(AgreementStatus.AGREED,
+                alice.party, bob.party, "One bag of grapes", Amount(5, Currency.getInstance("EUR")), alice.party, bob.party, linearId = linearId)
+
+        ledgerServices.ledger {
+
+            // Propose
+            // Note: null values are already checked for in status constraints, so can't check here because they have already errored
+            transaction {
+                input(AgreementContract.ID, proposed1)
+                command(bob.publicKey, AgreementContract.Commands.Reject())
+                output(AgreementContract.ID, rejected)
+                failsWith("When the command is Reject no properties can change except status, rejectionReason and rejectedBy.")
+            }
+
+            // Agree
+            transaction {
+                input(AgreementContract.ID, proposed2)
+                command(alice.publicKey, AgreementContract.Commands.Agree())
+                output(AgreementContract.ID, agreed1)
+                failsWith("When the command is Agree no properties can change except status.")
+            }
+            transaction {
+                input(AgreementContract.ID, proposed2)
+                command(alice.publicKey, AgreementContract.Commands.Agree())
+                output(AgreementContract.ID, agreed2)
+                failsWith("When the command is Agree no properties can change except status.")
+            }
+            transaction {
+                input(AgreementContract.ID, proposed2)
+                command(alice.publicKey, AgreementContract.Commands.Agree())
+                output(AgreementContract.ID, agreed3)
+                failsWith("When the command is Agree no properties can change except status.")
+            }
+            transaction {
+                input(AgreementContract.ID, proposed2)
+                command(alice.publicKey, AgreementContract.Commands.Agree())
+                output(AgreementContract.ID, agreed4)
+                failsWith("When the command is Agree no properties can change except status.")
+            }
+
+        }
+    }
+
 }
