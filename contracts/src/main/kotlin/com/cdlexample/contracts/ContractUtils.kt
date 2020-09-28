@@ -26,7 +26,7 @@ class PathConstraint<T: ContractState>(val command: CommandData,
                      val outputStatus: Status?,
                      val inputMultiplicityConstraint: MultiplicityConstraint = MultiplicityConstraint(),
                      val outputMultiplicityConstraint: MultiplicityConstraint = MultiplicityConstraint(),
-                     val additionalStatesConstraints: Set<AdditionalStatesConstraint> =  setOf()){
+                     val additionalStatesConstraints: Set<AdditionalStatesConstraint> =  setOf()){    // todo: should this be a set, could it give different error messages depending on the order of evaluation
 
     infix fun allows(p: Path<T>): Boolean = when {
         (command::class.java != p.command::class.java) -> false
@@ -40,7 +40,6 @@ class PathConstraint<T: ContractState>(val command: CommandData,
     infix fun doesNotAllow(p: Path<T>): Boolean = !this.allows(p)
 
     private fun additionalStatesCheck(constraints: Set<AdditionalStatesConstraint>, additionalStates: Set<AdditionalStates>) :Boolean =
-//             additionalStatesConstraints.all { c -> additionalStates.any { s -> c isSatisfiedBy s}}
             // todo: double check the logic for dealing with zero multiplicities
             additionalStatesConstraints.all { c -> additionalStates.any { s -> c isSatisfiedBy s} ||
                                                                             c.requiredNumberOfStates.from == 0 && additionalStates.none { it.clazz == c.clazz }
