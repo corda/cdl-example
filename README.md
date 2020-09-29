@@ -13,7 +13,7 @@ The intention is to take a mid level complexity CDL design and show how it can b
 
 ## CDL Smart Contract view
 
-The Smart Contract design can be articulated using the Smart Contract CDL view, this is replaces and enhances the old State Machine view. 
+The Smart Contract design can be articulated using the Smart Contract CDL view, this replaces and enhances the old State Machine view. 
 
 The Agreement Smart Contract can be represented as follows:
 
@@ -79,12 +79,16 @@ enum class AgreementStatus: Status{
  
 ## Primary State (might want a better name)
 
-For convenience in these explanations, we define the 'Primary State' as the States of type `StatusState` which are the main concern of the CDL diagram. ie it is the statuses of the Primary State which define the different statuses shown on the CDL Smart Contract Diagram. In this CorDapp it is the AgreementState
+For convenience in these explanations, we define the 'Primary' States as States of type `StatusState` which are the main concern of the CDL diagram. Ie, it is the statuses of the Primary State which are shown in the different boxes on the CDL Smart Contract Diagram. In this CorDapp it is the AgreementState
 
 We also mandate that:
 
-- if there are multiple Primary States inputs they must have the same status 
-- if there are multiple Primary State outputs, they much have the same status (but can be different from the Primary State Input's status.
+- if there are multiple Primary State inputs they must have the same status. 
+- if there are multiple Primary State outputs, they must have the same status, which can be different from the Primary State Input's status.)
+
+There can be other states in the transaction, we will refer to those as 'Additional' states. 
+
+The state that is considered Primary depends on the perspective of the CDL diagrams and the implementation. If two Smart Contracts are interacting, for example, this Agreement Smart Contract state and a Billing Smart Contract, then each would have its own CDL diagram and Smart Contract implementation. For the Agreement Smart Contract the Agreement States would be considered Primary with the Billing States being 'Addtional', where as for the Billing Smart Contract the Billing States would be considered Primary with the Agreements states being 'Additional'
 
  
 ## Paths
@@ -158,7 +162,7 @@ This can be represented diagrammatically as follows:
 
 
 
-
+There is an open question as to whether there should be an 'exclusive' flag on the Path Constraint, meaning that the only the States defined in the AdditionalStateConstraints may be present. Currently Path constraints allow any number of other State types not mentioned in the constraint, it will pass verification as long as the specified AdditionalStates are present.
 
 ## ContractUtils
 
