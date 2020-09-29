@@ -34,12 +34,100 @@ Note, the greyed out states concerns Billing which has not been implemented yet.
 
 This particular evolution (Propose, Reject, Repropose, Agree, Complete) is used as the base happy path case in the unit tests and most of the test cases follow this order, see `/contracts/AgreementContractTests.kt`
 
+# Approach to writing the Contract
+
+## 'Sub' verify functions for each Constraint
+
+As smart Contracts become more complicated, the risk of missing some important control grows. To reduce this risk the smart contract is split up into sub verify functions which each deal with one of the types of constraints defined in CDL Smart contract view. (With the exception of the blue Flow constraints which are not implemented in the Contract and are more notes on what the flows should be doing.) 
+
+```kotlin
+    override fun verify(tx: LedgerTransaction) {
+
+        verifyPathConstraints(tx, AgreementState::class.java)
+        verifyUniversalConstraints(tx)
+        verifyStatusConstraints(tx)
+        verifyLinearIDConstraints(tx, AgreementState::class.java)
+        verifySigningConstraints(tx)
+        verifyCommandConstraints(tx)
+    }
+```
+
+
+
+## Principle: Clarity and structure over duplicate code
+
+By spliting the verifications into the sub verify functions there is some duplication, eg multiple when statements on Command(), but the principle is that it is better to have some duplication if it allows better clarity and structure, because better clarity and structure leads to lower risk, easier to understand and implement Smart Contracts.
+
+## Standardised mechanisms to implement each type of constraint 
+
+For each sub verify function we aim for a standard structure to test that type of constraint. The idea being that any Cordapp should be able to follow the same structure and just change the details of the conditions. For example, the code for verifying Status constraints looks like this: 
+
+```kotlin
+    fun verifyStatusConstraints(tx: LedgerTransaction){
+
+        val allStates = tx.inputsOfType<AgreementState>() + tx.outputsOfType<AgreementState>()
+
+        for (s in allStates) {
+            when(s.status){
+                PROPOSED -> {
+                    requireThat {
+                        "When status is Proposed rejectionReason must be null" using (s.rejectionReason == null)
+                        "When status is Rejected rejectedBy must be null" using (s.rejectedBy == null)
+                    }
+                }
+                REJECTED -> {
+                    requireThat {
+                        "When status is Rejected rejectionReason must not be null" using (s.rejectionReason != null)
+                        "When status is Rejected rejectedBy must not be null" using (s.rejectedBy != null)
+                        "When the Status is Rejected rejectedBy must be the buyer or seller" using (listOf(s.buyer, s.seller).contains(s.rejectedBy))
+                    }
+                }
+                AGREED -> {}
+            }
+        }
+    }
+```
+Which can be generalised to this for any CorDapp: 
+
+```kotlin
+    fun verifyStatusConstraints(tx: LedgerTransaction){
+
+        val allStates = tx.inputsOfType<MyState>() + tx.outputsOfType<MyState>()
+
+        for (s in allStates) {
+            when(s.status){
+                MY_STATUS_1 -> {
+                    requireThat {
+                        // Checks on states in status MY_STATUS_1
+                    }
+                }
+                MY_STATUS_2 -> {
+                    requireThat {
+                        // Checks on states in status MY_STATUS_2
+                    }
+                }
+            }
+        }
+    }
+```
+
+## Generic functionality moved to ContractUtils
+
+To aid simplicity and support standardised mechanics for the verification, the implementation has been split between:
+
+- Verify/ sub-verify functions which are simple, formulaic and approximate a configuration file, and
+- ContractUtils which provides a set of helper function for use in the verify function, that perform the heavy lifting, particularly around Paths and PathConstraints and are intended to be generic and reuseable for any Smart contract.
+
+## Testing
+
+Each sub verify has a set of unit tests which follow the base happy path, but introduce errors which ensure the contract validations fail in the correct way. 
+
+The ContractUtils has its own set of tests which test more complicated uses of the Path and PathConstraints. 
 
 
 # New concepts
 
-As part of the implementation we introduce some new concepts: 
- 
+As part of the implementation we introduce some new concepts:  
  
 ### StatusStates and Status interfaces
 
@@ -259,105 +347,6 @@ The mechanism for Paths and Path Constraints can be represented in the the follo
 
 
 There is an open question as to whether there should be an 'exclusive' flag on the Path Constraint, meaning that the only the States defined in the AdditionalStateConstraints may be present. Currently Path constraints allow any number of other State types not mentioned in the constraint, it will pass verification as long as the specified AdditionalStates are present.
-
-## ContractUtils
-
-*** designed to be reuseable ***
-
- 
- 
- 
- the idea of Paths. Paths represent the options that a State in a particular status 
-
-
-# Approach to writing the Contract
-
-## 'Sub' verify functions for each Constraint
-
-As smart Contracts become more complicated, the risk of missing some important control grows. To reduce this risk the smart contract is split up into sub verify functions which each deal with one of the types of constraints defined in CDL Smart contract view. (With the exception of the blue Flow constraints which are not implemented in the Contract and are more notes on what the flows should be doing.) 
-
-```kotlin
-    override fun verify(tx: LedgerTransaction) {
-
-        verifyPathConstraints(tx, AgreementState::class.java)
-        verifyUniversalConstraints(tx)
-        verifyStatusConstraints(tx)
-        verifyLinearIDConstraints(tx, AgreementState::class.java)
-        verifySigningConstraints(tx)
-        verifyCommandConstraints(tx)
-    }
-```
-
-## Principle: Clarity and structure over duplicate code
-
-By spliting the verifications into the sub verify functions there is some duplication, eg multiple when statements on Command(), but the principle is that it is better to have some duplication if it allows better clarity and structure, because better clarity and structure leads to lower risk, easier to understand and implement Smart Contracts.
-
-## Standardised mechanisms to implement each type of constraint 
-
-For each sub verify function we aim for a standard structure to test that type of constraint. The idea being that any Cordapp should be able to follow the same structure and just change the details of the conditions. For example, the code for verifying Status constraints looks like this: 
-
-```kotlin
-    fun verifyStatusConstraints(tx: LedgerTransaction){
-
-        val allStates = tx.inputsOfType<AgreementState>() + tx.outputsOfType<AgreementState>()
-
-        for (s in allStates) {
-            when(s.status){
-                PROPOSED -> {
-                    requireThat {
-                        "When status is Proposed rejectionReason must be null" using (s.rejectionReason == null)
-                        "When status is Rejected rejectedBy must be null" using (s.rejectedBy == null)
-                    }
-                }
-                REJECTED -> {
-                    requireThat {
-                        "When status is Rejected rejectionReason must not be null" using (s.rejectionReason != null)
-                        "When status is Rejected rejectedBy must not be null" using (s.rejectedBy != null)
-                        "When the Status is Rejected rejectedBy must be the buyer or seller" using (listOf(s.buyer, s.seller).contains(s.rejectedBy))
-                    }
-                }
-                AGREED -> {}
-            }
-        }
-    }
-```
-Which can be generalised to this for any CorDapp: 
-
-```kotlin
-    fun verifyStatusConstraints(tx: LedgerTransaction){
-
-        val allStates = tx.inputsOfType<MyState>() + tx.outputsOfType<MyState>()
-
-        for (s in allStates) {
-            when(s.status){
-                MY_STATUS_1 -> {
-                    requireThat {
-                        // Checks on states in status MY_STATUS_1
-                    }
-                }
-                MY_STATUS_2 -> {
-                    requireThat {
-                        // Checks on states in status MY_STATUS_2
-                    }
-                }
-            }
-        }
-    }
-```
-
-## Testing
-
-Each sub verify has a set of unit tests which follow the base happy path, but introduce errors which ensure the contract validations fail in the correct way. 
-
-
-# Paths and PathConstraints
-
-It turns out that once you introduce status and start constraining the paths that a Smart contract allows between those statuses things get a little complicated. 
-
-
-
-
-
 
 
 # Build and deploy the Cordapp
