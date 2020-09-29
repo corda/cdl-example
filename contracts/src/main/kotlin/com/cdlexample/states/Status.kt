@@ -3,6 +3,8 @@ package com.cdlexample.states
 import net.corda.core.contracts.ContractState
 import net.corda.core.serialization.CordaSerializable
 
+// todo: move this into ContractUtils
+
 /**
  * The StatusState interface should be implemented for all Contract states that require a status field.
  */

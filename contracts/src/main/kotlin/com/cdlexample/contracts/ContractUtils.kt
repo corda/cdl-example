@@ -6,6 +6,7 @@ import net.corda.core.contracts.*
 import net.corda.core.transactions.LedgerTransaction
 
 
+
 class Path<T: StatusState>(val command: CommandData,
                 val outputStatus: Status?,
                 val numberOfInputStates: Int,
