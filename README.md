@@ -45,6 +45,8 @@ A core element of the CDL Smart Contract view is that Corda States can be in dif
 
 To Identify ContractStates as requiring a status property we introduce new interfaces `StatusState`, together with `Status`, which is an interface for the status property.
 
+Status is nullable because we want to be able to represent no State as a status `null`. For example, when defining Paths allowed in transactions which have no input state we define the input status as null and map null -> allowed Paths.
+
 ```kotlin
 /**
  * The StatusState interface should be implemented for all Contract states that require a status field.
@@ -79,7 +81,7 @@ enum class AgreementStatus: Status{
  
 ## Primary State (might want a better name)
 
-For convenience in these explanations, we define the 'Primary' States as States of type `StatusState` which are the main concern of the CDL diagram. Ie, it is the statuses of the Primary State which are shown in the different boxes on the CDL Smart Contract Diagram. In this CorDapp it is the AgreementState
+For convenience in these explanations, we define the 'Primary' States as States of type `StatusState` which are the main concern of the CDL diagram. Ie, it is the statuses of the Primary State which are shown in the different boxes on the CDL Smart Contract diagram. In this CorDapp it is the AgreementState.
 
 We also mandate that:
 
@@ -93,7 +95,7 @@ The state that is considered Primary depends on the perspective of the CDL diagr
  
 ## Paths
 
-A Path is defined as the transition that a state makes from a given input Status with in a specific transaction. They are defined using the following code
+A Path is defined as the transition that a state makes from a given input Status within a specific transaction. They are defined as follows:
 
 ```kotlin
 class Path<T: StatusState>(val command: CommandData,
@@ -108,7 +110,7 @@ enum class AdditionalStatesType {INPUT, OUTPUT, REFERENCE}
 ```
 
 - `command` represents the command.value in the transaction relating to the Primary State's Contract (there could be other commands in the transaction to but they are not dealt with by Paths) 
-- `outputStatus` represents the status of the output Primary State 
+- `outputStatus` represents the status of the output Primary State. it will be null if there is no output state.
 - `numberOfInputStates` represents the number of States of the Primary State type in the transaction. 
 - `numberOfOutputStates` represents the number of States of the Primary State type in the transaction. 
 - `additionalStates` represents States types other than the Primary States which are in the transaction, including whether they are Inputs, outputs or reference states and how many of each are in the transaction. 
