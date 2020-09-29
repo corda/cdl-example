@@ -15,7 +15,7 @@ The intention is to take a mid level complexity CDL design and show how it can b
 
 The Smart Contract design can be articulated using the Smart Contract CDL view, this is replaces and enhances the old State Machine view. 
 
-** add picture
+<img src="resources/cdl-agreement-smart-contract.png" alt="cdl-agreement-smart-contract.png">
 
 ### CDL Ledger Evolution view
 
