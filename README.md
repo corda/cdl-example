@@ -39,7 +39,7 @@ This particular evolution (Propose, Reject, Repropose, Agree, Complete) is used 
 As part of the implementation we introduce some new concepts: 
  
  
-### StatusStates and Statue interfaces
+### StatusStates and Status interfaces
 
 A core element of the CDL Smart Contract view is that Corda States can be in different statuses. When in different statuses there are different restrictions on the form of the state and the transitions that state can make.
 
@@ -95,7 +95,7 @@ The state that is considered Primary depends on the perspective of the CDL diagr
  
 ## Paths
 
-A Path is defined as the transition that a state makes from a given input Status within a specific transaction. They are defined as follows:
+A Path represents the transition that a state makes from a given input Status within a specific transaction. Path is implemented as follows:
 
 ```kotlin
 class Path<T: StatusState>(val command: CommandData,
