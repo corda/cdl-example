@@ -38,7 +38,7 @@ This particular evolution (Propose, Reject, Repropose, Agree, Complete) is used 
 
 ## 'Sub' verify functions for each Constraint
 
-As smart Contracts become more complicated, the risk of missing some important control grows. To reduce this risk the smart contract is split up into sub-verify functions which each deal with one of the types of constraints defined in CDL Smart contract view. (With the exception of the blue Flow constraints which are not implemented in the Contract and are more notes on what the flows should be doing.) 
+As smart Contracts become more complicated, the risk of missing some important control grows. To reduce this risk the smart contract is split up into sub-verify functions which each deal with one of the types of constraints defined in CDL Smart Contract view. (With the exception of the blue Flow constraints which are not implemented in the Contract and are more notes on what the Flows should be doing.) 
 
 ```kotlin
     override fun verify(tx: LedgerTransaction) {
@@ -52,11 +52,11 @@ As smart Contracts become more complicated, the risk of missing some important c
     }
 ```
 
-By splitting the verification into the sub-verify functions there is some duplication, eg multiple `when` statements on `command.value`, but the principle is that it is better to have some duplication if it allows better clarity and structure, because better clarity and structure leads to lower risk, easier to understand and implement Smart Contracts.
+By splitting the verification into the sub-verify functions there is some duplication, eg multiple `when` statements on `command.value`, but the principle is that it is better to have some duplication if it allows better clarity and structure of the Smart Contract because this reduces the risk of making mistakes.
 
 ## Standardised mechanisms to implement each type of constraint 
 
-For each sub-verify function we aim for a standard structure to implement that type of constraint. The idea being that any Cordapp should be able to follow the same structure and just change the details of the conditions. For example, the code for verifying Status constraints looks like this: 
+For each sub-verify function we aim for a standard structure to implement that type of constraint. The idea being that any Cordapp should be able to follow the same structure and just change the details of the conditions. For example, the code for verifying Status constraints is as follows: 
 
 ```kotlin
     fun verifyStatusConstraints(tx: LedgerTransaction){
@@ -83,7 +83,7 @@ For each sub-verify function we aim for a standard structure to implement that t
         }
     }
 ```
-Which can be generalised to this for any CorDapp which uses statuses: 
+Which can be generalised to be applicable for any CorDapp which uses statuses: 
 
 ```kotlin
     fun verifyStatusConstraints(tx: LedgerTransaction){
@@ -129,9 +129,10 @@ As part of the implementation we introduce some new concepts:
 
 A core element of the CDL Smart Contract view is that Corda States can be in different statuses. When in different statuses there are different restrictions on the form of the state and the transitions that state can make.
 
-To Identify ContractStates as requiring a status property we introduce new interfaces `StatusState`, together with `Status`, which is an interface for the status property.
 
-Status is nullable because we want to be able to represent no State as a status `null`. For example, when defining Paths allowed in transactions which have no input state we define the input status as null and map null -> allowed Paths.
+Contract States which require a status property should implement the `StatusState` interface. This requires `val status: Status?` to be implemented by the Contract State.
+
+`status` is nullable because we want to be able to represent no State as a status `null`. For example, when defining Paths allowed in transactions which have no input state we define the input status as null and map null -> allowed Paths.
 
 ```kotlin
 /**
@@ -172,7 +173,7 @@ For convenience in these explanations, we define the 'Primary' States as States 
 We also mandate that:
 
 - if there are multiple Primary State inputs they must have the same status. 
-- if there are multiple Primary State outputs, they must have the same status, which can be different from the Primary State Input's status.)
+- if there are multiple Primary State outputs, they must have the same status, which can be different from the Primary State Input's status.
 
 There can be other states in the transaction, we will refer to those as 'Additional' states. 
 
@@ -194,8 +195,8 @@ class AdditionalStates(val type: AdditionalStatesType, val clazz: Class<out Cont
 
 enum class AdditionalStatesType {INPUT, OUTPUT, REFERENCE}
 ```
-
-- `command` represents the command.value in the transaction relating to the Primary State's Contract (there could be other commands in the transaction but they are not dealt with by Paths) 
+Where: 
+- `command` represents the command.value in the transaction which relates to the Primary State's Contract (there could be other commands in the transaction but they are not dealt with by Paths) 
 - `outputStatus` represents the status of the output Primary State. it will be null if there is no output state.
 - `numberOfInputStates` represents the number of States of the Primary State type in the transaction. 
 - `numberOfOutputStates` represents the number of States of the Primary State type in the transaction. 
@@ -203,7 +204,7 @@ enum class AdditionalStatesType {INPUT, OUTPUT, REFERENCE}
 
 In this CorDapp:
 
-- `numberOfInputStates` and `numberOfOutputStates` are going to be set to 0 or 1, because for any given agreement we only want to have a maximum of one AgreementState unconsumed at any point in time which representing the latest state of this agreement. However, in other use cases there could be different Multiplicities involved)
+- `numberOfInputStates` and `numberOfOutputStates` are going to be set to 0 or 1, because for any given agreement we only want to have a maximum of one AgreementState unconsumed at any point in time representing the latest state of this agreement. However, in other use cases there could be different Multiplicities involved
 - `additionalStates` will be used to represent the BillingChips required in the Agree Paths (Although this is not implemented yet)
 
 
@@ -211,7 +212,7 @@ In this CorDapp:
 
 PathConstraints are used to restrict Paths that are allowed in a transaction. The Contract defines a set of PathConstraints for each Primary State status, for example when in status X you can follow PathConstraint A or B, but when you are in state Y you can only follow PathConstraint C .
 
-In order to pass the verify the Path in the transaction needs to comply to at least one of the allowed PathConstraints for the Status of the Primary Input State status. 
+In order to pass the verify the Path in the transaction needs to comply to at least one of the allowed PathConstraints for the Status of the Primary Input State. 
 
 PathConstraints are implemented as follows: 
 
@@ -233,11 +234,13 @@ class PathConstraint<T: StatusState>(val command: CommandData,
 
 ```
 Where:
-- `command` is the class of the command allowed
-- `outputStatus` is the outputStatus of the Primary State that is allowed
-- `inputMultiplicityConstraint` defines the range of number of inputs of Primary type that are allowed 
-- `outputMultiplicityConstraint` defines the range of number of outputs of Primary type that are allowed 
+- `command` is the class of the command required
+- `outputStatus` is the outputStatus of the Primary State that is required
+- `inputMultiplicityConstraint` defines the range of number of inputs of Primary type that is required  
+- `outputMultiplicityConstraint` defines the range of number of outputs of Primary type that is required
 - `additionalStatesConstraint` defines which additional states must be present in the transaction
+
+A Path will only be allowed by the PathConstraint if it passes all these requirements
 
 `additionalStatesConstraint` are implemented as follows:
 
@@ -255,7 +258,7 @@ class AdditionalStatesConstraint(val type: AdditionalStatesType ,
 where: 
 - `type` is INPUT, OUTPUT or REFERENCE
 - `clazz` is the required type of the additional states
-- `requiredNumberOfStates` is defines how many of the state type there should be using a `MultiplicityConstraint`
+- `requiredNumberOfStates` defines how many AdditionalStates of this type are allowed using a `MultiplicityConstraint`
 
 `MultiplicityConstraint` are defined as follows:
 
@@ -272,10 +275,10 @@ class MultiplicityConstraint(val from: Int = 1,
 
 where: 
 - `from` is the minimum number of states
-- `bounded` specifies if there is an upper limit
+- `bounded` specifies if there is an upper limit 
 - `upperbound` specifies the upperbound, which is only applied if `bounded` is true
 
-Note, the structure above allows for quite complex definitiona of what is allowed, in most cases these won't be needed. to simplify the use of PathConstraints most properties are defaulted. So for example you can specify a Path constraint simply as:
+Note, the structure above allows for quite complex definition of what is allowed, in most cases these won't be needed. To simplify the use of PathConstraints most properties are defaulted. So for example you can specify a Path constraint simply as:
 
 ```kotlin
 PathConstraint(Commands.Reject(), REJECTED)
@@ -297,6 +300,8 @@ PathConstraint(Commands.Command2(), TestState2A.TestStatus.STATUSA2, additionalS
 
 
 ```
+
+## Using Path Constraints in the Contract
 
 The classes for Paths and PathConstraints are all provided in the ContractUtlis file, this means that the verifyPathConstraints() function is actually very simple to write:
 
@@ -333,7 +338,7 @@ The classes for Paths and PathConstraints are all provided in the ContractUtlis 
 
 ```
 
-Because a lot of the heavy lifting has be moved to the ContractUtils, this pattern can be replicated for any generic Contract by substituting in the specific Statuses and the PathConstraints for each status.
+Because a lot of the heavy lifting has be moved to the ContractUtils, this pattern can be replicated for other Contracts by substituting in the specific Statuses and the PathConstraints for each status.
 
 
 The mechanism for Paths and Path Constraints can be represented in the the following diagram: 
