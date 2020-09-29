@@ -34,11 +34,11 @@ Note, the greyed out states concerns Billing which has not been implemented yet.
 
 This particular evolution (Propose, Reject, Repropose, Agree, Complete) is used as the base happy path case in the unit tests and most of the test cases follow this order, see `/contracts/AgreementContractTests.kt`
 
-# Approach to writing the Contract
+# Approach for converting the CDL into Contract Code
 
 ## 'Sub' verify functions for each Constraint
 
-As smart Contracts become more complicated, the risk of missing some important control grows. To reduce this risk the smart contract is split up into sub verify functions which each deal with one of the types of constraints defined in CDL Smart contract view. (With the exception of the blue Flow constraints which are not implemented in the Contract and are more notes on what the flows should be doing.) 
+As smart Contracts become more complicated, the risk of missing some important control grows. To reduce this risk the smart contract is split up into sub-verify functions which each deal with one of the types of constraints defined in CDL Smart contract view. (With the exception of the blue Flow constraints which are not implemented in the Contract and are more notes on what the flows should be doing.) 
 
 ```kotlin
     override fun verify(tx: LedgerTransaction) {
@@ -52,15 +52,11 @@ As smart Contracts become more complicated, the risk of missing some important c
     }
 ```
 
-
-
-## Principle: Clarity and structure over duplicate code
-
-By spliting the verifications into the sub verify functions there is some duplication, eg multiple when statements on Command(), but the principle is that it is better to have some duplication if it allows better clarity and structure, because better clarity and structure leads to lower risk, easier to understand and implement Smart Contracts.
+By splitting the verification into the sub-verify functions there is some duplication, eg multiple `when` statements on `command.value`, but the principle is that it is better to have some duplication if it allows better clarity and structure, because better clarity and structure leads to lower risk, easier to understand and implement Smart Contracts.
 
 ## Standardised mechanisms to implement each type of constraint 
 
-For each sub verify function we aim for a standard structure to test that type of constraint. The idea being that any Cordapp should be able to follow the same structure and just change the details of the conditions. For example, the code for verifying Status constraints looks like this: 
+For each sub-verify function we aim for a standard structure to implement that type of constraint. The idea being that any Cordapp should be able to follow the same structure and just change the details of the conditions. For example, the code for verifying Status constraints looks like this: 
 
 ```kotlin
     fun verifyStatusConstraints(tx: LedgerTransaction){
@@ -87,7 +83,7 @@ For each sub verify function we aim for a standard structure to test that type o
         }
     }
 ```
-Which can be generalised to this for any CorDapp: 
+Which can be generalised to this for any CorDapp which uses statuses: 
 
 ```kotlin
     fun verifyStatusConstraints(tx: LedgerTransaction){
@@ -113,10 +109,10 @@ Which can be generalised to this for any CorDapp:
 
 ## Generic functionality moved to ContractUtils
 
-To aid simplicity and support standardised mechanics for the verification, the implementation has been split between:
+To support standardised mechanics for each sub-verification, the implementation has been split between:
 
 - Verify/ sub-verify functions which are simple, formulaic and approximate a configuration file, and
-- ContractUtils which provides a set of helper function for use in the verify function, that perform the heavy lifting, particularly around Paths and PathConstraints and are intended to be generic and reuseable for any Smart contract.
+- ContractUtils which provides a set of helper function for use in the verify function that performs the heavy lifting, particularly around Paths and PathConstraints. It is intended to be generic and reuseable for multiple Smart contracts.
 
 ## Testing
 
