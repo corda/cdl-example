@@ -34,6 +34,8 @@ Note, the greyed out states concerns Billing which has not been implemented yet.
 
 This particular evolution (Propose, Reject, Repropose, Agree, Complete) is used as the base happy path case in the unit tests and most of the test cases follow this order, see `/contracts/AgreementContractTests.kt`
 
+
+
 # New concepts
 
 As part of the implementation we introduce some new concepts: 
@@ -109,40 +111,39 @@ class AdditionalStates(val type: AdditionalStatesType, val clazz: Class<out Cont
 enum class AdditionalStatesType {INPUT, OUTPUT, REFERENCE}
 ```
 
-- `command` represents the command.value in the transaction relating to the Primary State's Contract (there could be other commands in the transaction to but they are not dealt with by Paths) 
+- `command` represents the command.value in the transaction relating to the Primary State's Contract (there could be other commands in the transaction but they are not dealt with by Paths) 
 - `outputStatus` represents the status of the output Primary State. it will be null if there is no output state.
 - `numberOfInputStates` represents the number of States of the Primary State type in the transaction. 
 - `numberOfOutputStates` represents the number of States of the Primary State type in the transaction. 
-- `additionalStates` represents States types other than the Primary States which are in the transaction, including whether they are Inputs, outputs or reference states and how many of each are in the transaction. 
+- `additionalStates` represents States types other than the Primary States type which are in the transaction, including whether they are inputs, outputs or reference states and how many of each are in the transaction. 
 
 In this CorDapp:
 
-- `numberOfInputStates` and `numberOfOutputStates` are going to be set to 0 or 1, because for any given agreement we only want to have one AgreementState unconsummed at one point in time representing the latest state of this agreement. However, in other use cases there could be different Multiplicities involved)
+- `numberOfInputStates` and `numberOfOutputStates` are going to be set to 0 or 1, because for any given agreement we only want to have a maximum of one AgreementState unconsumed at any point in time which representing the latest state of this agreement. However, in other use cases there could be different Multiplicities involved)
 - `additionalStates` will be used to represent the BillingChips required in the Agree Paths (Although this is not implemented yet)
 
 
 ## PathConstraints
 
-PathConstraints are used to restrict the allowed Paths that can be in a transaction. 
+PathConstraints are used to restrict Paths that are allowed in a transaction. The Contract defines a set of PathConstraints for each Primary State status, for example when in status X you can follow PathConstraint A or B, but when you are in state Y you can only follow PathConstraint C .
 
-A PathConstraint allows a subset of paths defined by: 
+In order to pass the verify the Path in the transaction needs to comply to at least one of the allowed PathConstraints for the Status of the Primary Input State status. 
+
+PathConstraints are implemented as follows: 
+
 
 ```kotlin
 class PathConstraint<T: StatusState>(val command: CommandData,
-                     val outputStatus: Status?,
-                     val inputMultiplicityConstraint: MultiplicityConstraint = MultiplicityConstraint(),
-                     val outputMultiplicityConstraint: MultiplicityConstraint = MultiplicityConstraint(),
-                     val additionalStatesConstraints: Set<AdditionalStatesConstraint> =  setOf()){  
+                                     val outputStatus: Status?,
+                                     val inputMultiplicityConstraint: MultiplicityConstraint = MultiplicityConstraint(),
+                                     val outputMultiplicityConstraint: MultiplicityConstraint = MultiplicityConstraint(),
+                                     val additionalStatesConstraints: Set<AdditionalStatesConstraint> =  setOf()){  
 
-    infix fun allows(p: Path<T>): Boolean {
-        ...
-    }
+    infix fun allows(p: Path<T>): Boolean { ... }
     
     infix fun doesNotAllow(p: Path<T>): Boolean = !this.allows(p)
 
-    private fun additionalStatesCheck(constraints: Set<AdditionalStatesConstraint>, additionalStates: Set<AdditionalStates>) :Boolean{
-        ...    
-    }
+    private fun additionalStatesCheck(constraints: Set<AdditionalStatesConstraint>, additionalStates: Set<AdditionalStates>) :Boolean{ ... }
 }
 
 
@@ -154,11 +155,104 @@ Where:
 - `outputMultiplicityConstraint` defines the range of number of outputs of Primary type that are allowed 
 - `additionalStatesConstraint` defines which additional states must be present in the transaction
 
-The Contract defines a set of PathConstraints for each Primary State status, for example when in status X you can follow PathConstraint A or B, but when you are in state Y you can only follow PathConstraint C .
+`additionalStatesConstraint` are implemented as follows:
 
-In order to pass the verify the Path in the transaction needs to comply to at least one of the allowed PathConstraints for the Status of the Primary Input State status. 
+```kotlin
+class AdditionalStatesConstraint(val type: AdditionalStatesType ,
+                                 val clazz: Class<out ContractState>, 
+                                 val requiredNumberOfStates: MultiplicityConstraint = MultiplicityConstraint()) {
 
-This can be represented diagrammatically as follows: 
+    infix fun isSatisfiedBy(additionalStates: AdditionalStates ):Boolean {...}
+
+    infix fun isNotSatisfiedBy (additionalStates: AdditionalStates): Boolean = !isSatisfiedBy(additionalStates)
+}
+```
+
+where: 
+- `type` is INPUT, OUTPUT or REFERENCE
+- `clazz` is the required type of the additional states
+- `requiredNumberOfStates` is defines how many of the state type there should be using a `MultiplicityConstraint`
+
+`MultiplicityConstraint` are defined as follows:
+
+```kotlin
+class MultiplicityConstraint(val from: Int = 1, 
+                             val bounded: Boolean = true, 
+                             val upperBound: Int = from){
+
+    infix fun allows(numberOfStates: Int): Boolean { ... }
+
+    infix fun doesNotAllow(numberOfStates: Int): Boolean = !this.allows(numberOfStates)
+}
+```
+
+where: 
+- `from` is the minimum number of states
+- `bounded` specifies if there is an upper limit
+- `upperbound` specifies the upperbound, which is only applied if `bounded` is true
+
+Note, the structure above allows for quite complex definitiona of what is allowed, in most cases these won't be needed. to simplify the use of PathConstraints most properties are defaulted. So for example you can specify a Path constraint simply as:
+
+```kotlin
+PathConstraint(Commands.Reject(), REJECTED)
+```
+
+which would default to 
+- 1 Input of Primary State type
+- 1 output Primary State type
+- no additional states required
+
+Or they could get much more complicated (this example is from the test scripts): 
+
+```kotlin
+PathConstraint(Commands.Command2(), TestState2A.TestStatus.STATUSA2, additionalStatesConstraints = setOf(
+        AdditionalStatesConstraint(AdditionalStatesType.INPUT, TestState2B::class.java, MultiplicityConstraint(2, false)),
+        AdditionalStatesConstraint(AdditionalStatesType.REFERENCE, TestState2C::class.java),
+        AdditionalStatesConstraint(AdditionalStatesType.OUTPUT, TestState2D::class.java)
+))
+
+
+```
+
+The classes for Paths and PathConstraints are all provided in the ContractUtlis file, this means that the verifyPathConstraints() function is actually very simple to write:
+
+```kotlin
+    fun <T: StatusState> verifyPathConstraints(tx: LedgerTransaction, clazz: Class<T>){
+
+        val commandValue = tx.commands.requireSingleCommand<AgreementContract.Commands>().value   // get the command
+
+        val txPath = getPath(tx, clazz, commandValue)       // call the utility function to get the Path of the transaction
+
+        val pathMap = mapOf<Status?, List<PathConstraint<T>>>(      // populate the map of statuses -> allowed constraints
+            null to listOf(
+                    PathConstraint(Commands.Propose(), PROPOSED, MultiplicityConstraint(0))     // define the constraints
+            ),
+            PROPOSED to listOf(
+                    PathConstraint(Commands.Reject(), REJECTED),
+                    PathConstraint(Commands.Agree(), AGREED)
+            ),
+            REJECTED to listOf(
+                    PathConstraint(Commands.Repropose(), PROPOSED)
+            ),
+            AGREED to listOf(
+                    PathConstraint(Commands.Complete(), null, outputMultiplicityConstraint = MultiplicityConstraint(0))
+            )
+        )
+        val inputStatus = requireSingleInputStatus(tx, clazz)       // get the Primary state status
+        val allowedPaths = pathMap[inputStatus]                     // get the allowed path for the status
+
+        requireThat {
+            "Input status must have a list of PathConstraints defined." using (allowedPaths != null)        // check that the map is filled in
+            "txPath must be allowed by PathConstraints for inputStatus $inputStatus" using verifyPath(txPath, allowedPaths!!)       // call the utility function to check the paths
+        }
+    }
+
+```
+
+Because a lot of the heavy lifting has be moved to the ContractUtils, this pattern can be replicated for any generic Contract by substituting in the specific Statuses and the PathConstraints for each status.
+
+
+The mechanism for Paths and Path Constraints can be represented in the the following diagram: 
 
 <img src="resources/paths diagram.png" alt="paths diagram.png">
 
