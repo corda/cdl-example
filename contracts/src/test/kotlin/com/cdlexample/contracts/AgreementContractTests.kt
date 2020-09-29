@@ -589,8 +589,6 @@ class AgreementContractTests {
                 output(AgreementContract.ID, agreed4)
                 failsWith("When the command is Agree no properties can change except status.")
             }
-
         }
     }
-
 }

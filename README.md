@@ -2,6 +2,82 @@
   <img src="https://www.corda.net/wp-content/uploads/2016/11/fg005_corda_b.png" alt="Corda" width="500">
 </p>
 
+# CorDapp Design Language (CDL) - Example CorDapp
+
+This CorDapp provides an example implementation of a CDL design for two Parties to come to an agreement over the purchase of some goods. 
+
+The intention is to take a mid level complexity CDL design and show how it can be systematically translated into the States and Contract required to implement the design.
+
+
+## CDL
+
+### CDL Smart Contract view
+
+The Smart Contract design can be articulated using the Smart Contract CDL view, this is replaces and enhances the old State Machine view. 
+
+** add picture
+
+### CDL Ledger Evolution view
+
+The Ledger Evolution view replaces the old State Evolution view. The Ledger Evolution view represents the part of the ledger that we want to show as a Directed Acyclic Graph (DAG). This is helpful for tracing privcay implications and should give a more intuitive view of how the ledger can evolve.
+
+
+<img src="resources/cdl-agreement-ledger-evolution.png" alt="cdl-agreement-ledger-evolution.png">
+
+## New concepts
+
+As part of the implementation we introduce some of new concepts: 
+ 
+ 
+### StatusStates and Statue interfaces
+
+A core element of the CDL Smart Contract view (previously know as the State Machine view) is that Corda States can be in different statuses. When in different statuses there are different restrictions on the form of the state and the transitions that state can make.
+
+To Identify ContractStates as requiring a status property we introduce a new interface StatusState and Status, an interface for the status property.
+
+```kotlin
+/**
+ * The StatusState interface should be implemented for all Contract states that require a status field.
+ */
+interface StatusState: ContractState {
+    val status: Status?
+}
+
+/**
+ * Statuses are defined as enum classes in the StatusState which should implement this Status interface.
+ */
+@CordaSerializable
+interface Status
+
+
+```
+Statuses are defined in the StatusState as an enum class implementing the Status interface. 
+ 
+```kotlin
+data class AgreementState(override val status: AgreementStatus,
+                           //.../// 
+                          override val participants: List<AbstractParty> = listOf(buyer, seller),
+                          override val linearId: UniqueIdentifier = UniqueIdentifier()) : LinearState, StatusState
+
+enum class AgreementStatus: Status{
+    PROPOSED,
+    REJECTED,
+    AGREED
+}
+
+
+```
+ 
+### Paths 
+ 
+ 
+ 
+ the idea of Paths. Paths represent the options that a State in a particular status 
+
+
+
+
+
 
 
 # CorDapp Template - Kotlin
