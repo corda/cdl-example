@@ -111,10 +111,10 @@ fun <T: StatusState>getPath(tx:LedgerTransaction, primaryStateClass: Class<T>, c
     // todo: consider what to do with reference states of primary type
 
     val additionalInputs = tx.inputStates.getAdditional(AdditionalStatesType.INPUT)
-    val additionalOutputs = tx.inputStates.getAdditional(AdditionalStatesType.OUTPUT)
+    val additionalOutputs = tx.outputStates.getAdditional(AdditionalStatesType.OUTPUT)
     val additionalReferences = tx.referenceStates.getAdditional(AdditionalStatesType.REFERENCE)
 
     val additionalStates = (additionalInputs + additionalOutputs + additionalReferences).toSet()
 
-    return  Path(commandValue, outputStatus, tx.referenceInputsOfType(primaryStateClass).size, tx.outputsOfType(primaryStateClass).size, additionalStates)
+    return  Path(commandValue, outputStatus, tx.inputsOfType(primaryStateClass).size, tx.outputsOfType(primaryStateClass).size, additionalStates)
 }
