@@ -126,33 +126,33 @@ class AgreementContractTests {
             transaction {
                 command(alice.publicKey, AgreementContract.Commands.Propose())
                 output(AgreementContract.ID, agreedState)
-                `fails with`("txPath must be allowed by PathConstraints for inputStatus null")
+                `fails with`("txPath must be allowed by PathConstraints for inputStatus null.")
             }
             transaction {
                 command(alice.publicKey, AgreementContract.Commands.Propose())
                 output(AgreementContract.ID, rejectedState)
-                `fails with`("txPath must be allowed by PathConstraints for inputStatus null")
+                `fails with`("txPath must be allowed by PathConstraints for inputStatus null.")
             }
             // Incorrect Commands
             transaction {
                 command(alice.publicKey, AgreementContract.Commands.Agree())
                 output(AgreementContract.ID, proposedState)
-                `fails with`("txPath must be allowed by PathConstraints for inputStatus null")
+                `fails with`("txPath must be allowed by PathConstraints for inputStatus null.")
             }
             transaction {
                 command(alice.publicKey, AgreementContract.Commands.Reject())
                 output(AgreementContract.ID, proposedState)
-                `fails with`("txPath must be allowed by PathConstraints for inputStatus null")
+                `fails with`("txPath must be allowed by PathConstraints for inputStatus null.")
             }
             transaction {
                 command(alice.publicKey, AgreementContract.Commands.Repropose())
                 output(AgreementContract.ID, proposedState)
-                `fails with`("txPath must be allowed by PathConstraints for inputStatus null")
+                `fails with`("txPath must be allowed by PathConstraints for inputStatus null.")
             }
             transaction {
                 command(alice.publicKey, AgreementContract.Commands.Complete())
                 output(AgreementContract.ID, proposedState)
-                `fails with`("txPath must be allowed by PathConstraints for inputStatus null")
+                `fails with`("txPath must be allowed by PathConstraints for inputStatus null.")
             }
 
             // from Proposed state
@@ -160,38 +160,38 @@ class AgreementContractTests {
             transaction {
                 input(AgreementContract.ID, proposedState)
                 command(alice.publicKey, AgreementContract.Commands.Agree())
-                `fails with`("txPath must be allowed by PathConstraints for inputStatus PROPOSED")
+                `fails with`("txPath must be allowed by PathConstraints for inputStatus PROPOSED.")
             }
             transaction {
                 input(AgreementContract.ID, proposedState)
                 command(alice.publicKey, AgreementContract.Commands.Agree())
                 output(AgreementContract.ID, proposedState)
-                `fails with`("txPath must be allowed by PathConstraints for inputStatus PROPOSED")
+                `fails with`("txPath must be allowed by PathConstraints for inputStatus PROPOSED.")
             }
             transaction {
                 input(AgreementContract.ID, proposedState)
                 command(alice.publicKey, AgreementContract.Commands.Agree())
                 output(AgreementContract.ID, rejectedState)
-                `fails with`("txPath must be allowed by PathConstraints for inputStatus PROPOSED")
+                `fails with`("txPath must be allowed by PathConstraints for inputStatus PROPOSED.")
             }
             // Incorrect Commands
             transaction {
                 input(AgreementContract.ID, proposedState)
                 command(alice.publicKey, AgreementContract.Commands.Propose())
                 output(AgreementContract.ID, agreedState)
-                `fails with`("txPath must be allowed by PathConstraints for inputStatus PROPOSED")
+                `fails with`("txPath must be allowed by PathConstraints for inputStatus PROPOSED.")
             }
             transaction {
                 input(AgreementContract.ID, proposedState)
                 command(alice.publicKey, AgreementContract.Commands.Repropose())
                 output(AgreementContract.ID, agreedState)
-                `fails with`("txPath must be allowed by PathConstraints for inputStatus PROPOSED")
+                `fails with`("txPath must be allowed by PathConstraints for inputStatus PROPOSED.")
             }
             transaction {
                 input(AgreementContract.ID, proposedState)
                 command(alice.publicKey, AgreementContract.Commands.Complete())
                 output(AgreementContract.ID, agreedState)
-                `fails with`("txPath must be allowed by PathConstraints for inputStatus PROPOSED")
+                `fails with`("txPath must be allowed by PathConstraints for inputStatus PROPOSED.")
             }
 
             // From Rejected Status
@@ -199,44 +199,44 @@ class AgreementContractTests {
             transaction {
                 input(AgreementContract.ID, rejectedState)
                 command(alice.publicKey, AgreementContract.Commands.Repropose())
-                `fails with`("txPath must be allowed by PathConstraints for inputStatus REJECTED")
+                `fails with`("txPath must be allowed by PathConstraints for inputStatus REJECTED.")
             }
             transaction {
                 input(AgreementContract.ID, rejectedState)
                 command(alice.publicKey, AgreementContract.Commands.Repropose())
                 output(AgreementContract.ID, rejectedState)
-                `fails with`("txPath must be allowed by PathConstraints for inputStatus REJECTED")
+                `fails with`("txPath must be allowed by PathConstraints for inputStatus REJECTED.")
             }
             transaction {
                 input(AgreementContract.ID, rejectedState)
                 command(alice.publicKey, AgreementContract.Commands.Repropose())
                 output(AgreementContract.ID, agreedState)
-                `fails with`("txPath must be allowed by PathConstraints for inputStatus REJECTED")
+                `fails with`("txPath must be allowed by PathConstraints for inputStatus REJECTED.")
             }
             // Incorrect Commands
             transaction {
                 input(AgreementContract.ID, rejectedState)
                 command(alice.publicKey, AgreementContract.Commands.Propose())
                 output(AgreementContract.ID, proposedState)
-                `fails with`("txPath must be allowed by PathConstraints for inputStatus REJECTED")
+                `fails with`("txPath must be allowed by PathConstraints for inputStatus REJECTED.")
             }
             transaction {
                 input(AgreementContract.ID, rejectedState)
                 command(alice.publicKey, AgreementContract.Commands.Reject())
                 output(AgreementContract.ID, proposedState)
-                `fails with`("txPath must be allowed by PathConstraints for inputStatus REJECTED")
+                `fails with`("txPath must be allowed by PathConstraints for inputStatus REJECTED.")
             }
             transaction {
                 input(AgreementContract.ID, rejectedState)
                 command(alice.publicKey, AgreementContract.Commands.Agree())
                 output(AgreementContract.ID, proposedState)
-                `fails with`("txPath must be allowed by PathConstraints for inputStatus REJECTED")
+                `fails with`("txPath must be allowed by PathConstraints for inputStatus REJECTED.")
             }
             transaction {
                 input(AgreementContract.ID, rejectedState)
                 command(alice.publicKey, AgreementContract.Commands.Complete())
                 output(AgreementContract.ID, proposedState)
-                `fails with`("txPath must be allowed by PathConstraints for inputStatus REJECTED")
+                `fails with`("txPath must be allowed by PathConstraints for inputStatus REJECTED.")
             }
 
             // From Agreed
@@ -245,40 +245,40 @@ class AgreementContractTests {
                 input(AgreementContract.ID, agreedState)
                 command(alice.publicKey, AgreementContract.Commands.Complete())
                 output(AgreementContract.ID, proposedState)
-                `fails with`("txPath must be allowed by PathConstraints for inputStatus AGREED")
+                `fails with`("txPath must be allowed by PathConstraints for inputStatus AGREED.")
             }
             transaction {
                 input(AgreementContract.ID, agreedState)
                 command(alice.publicKey, AgreementContract.Commands.Complete())
                 output(AgreementContract.ID, rejectedState)
-                `fails with`("txPath must be allowed by PathConstraints for inputStatus AGREED")
+                `fails with`("txPath must be allowed by PathConstraints for inputStatus AGREED.")
             }
             transaction {
                 input(AgreementContract.ID, agreedState)
                 command(alice.publicKey, AgreementContract.Commands.Complete())
                 output(AgreementContract.ID, agreedState)
-                `fails with`("txPath must be allowed by PathConstraints for inputStatus AGREED")
+                `fails with`("txPath must be allowed by PathConstraints for inputStatus AGREED.")
             }
             // Incorrect Commands
             transaction {
                 input(AgreementContract.ID, agreedState)
                 command(alice.publicKey, AgreementContract.Commands.Propose())
-                `fails with`("txPath must be allowed by PathConstraints for inputStatus AGREED")
+                `fails with`("txPath must be allowed by PathConstraints for inputStatus AGREED.")
             }
             transaction {
                 input(AgreementContract.ID, agreedState)
                 command(alice.publicKey, AgreementContract.Commands.Reject())
-                `fails with`("txPath must be allowed by PathConstraints for inputStatus AGREED")
+                `fails with`("txPath must be allowed by PathConstraints for inputStatus AGREED.")
             }
             transaction {
                 input(AgreementContract.ID, agreedState)
                 command(alice.publicKey, AgreementContract.Commands.Repropose())
-                `fails with`("txPath must be allowed by PathConstraints for inputStatus AGREED")
+                `fails with`("txPath must be allowed by PathConstraints for inputStatus AGREED.")
             }
             transaction {
                 input(AgreementContract.ID, agreedState)
                 command(alice.publicKey, AgreementContract.Commands.Agree())
-                `fails with`("txPath must be allowed by PathConstraints for inputStatus AGREED")
+                `fails with`("txPath must be allowed by PathConstraints for inputStatus AGREED.")
             }
         }
     }
@@ -344,17 +344,17 @@ class AgreementContractTests {
             transaction {
                 command(alice.publicKey, AgreementContract.Commands.Propose())
                 output(AgreementContract.ID, proposed2)
-                `fails with`("When status is Proposed rejectionReason must be null")
+                `fails with`("When status is Proposed rejectionReason must be null.")
             }
             transaction {
                 command(alice.publicKey, AgreementContract.Commands.Propose())
                 output(AgreementContract.ID, proposed3)
-                `fails with`("When status is Rejected rejectedBy must be null")
+                `fails with`("When status is Rejected rejectedBy must be null.")
             }
             transaction {
                 command(alice.publicKey, AgreementContract.Commands.Propose())
                 output(AgreementContract.ID, proposed4)
-                `fails with`("When status is Proposed rejectionReason must be null")
+                `fails with`("When status is Proposed rejectionReason must be null.")
             }
 
             // Rejected
@@ -362,19 +362,19 @@ class AgreementContractTests {
                 input(AgreementContract.ID, proposed1)
                 command(alice.publicKey, AgreementContract.Commands.Reject())
                 output(AgreementContract.ID, rejected1)
-                `fails with`("When status is Rejected rejectedBy must not be null")
+                `fails with`("When status is Rejected rejectedBy must not be null.")
             }
             transaction {
                 input(AgreementContract.ID, proposed1)
                 command(alice.publicKey, AgreementContract.Commands.Reject())
                 output(AgreementContract.ID, rejected2)
-                `fails with`("When status is Rejected rejectionReason must not be null")
+                `fails with`("When status is Rejected rejectionReason must not be null.")
             }
             transaction {
                 input(AgreementContract.ID, proposed1)
                 command(alice.publicKey, AgreementContract.Commands.Reject())
                 output(AgreementContract.ID, rejected3)
-                `fails with`("When status is Rejected rejectionReason must not be null")
+                `fails with`("When status is Rejected rejectionReason must not be null.")
             }
         }
     }

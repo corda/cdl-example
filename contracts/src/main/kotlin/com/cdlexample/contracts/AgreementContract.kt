@@ -2,7 +2,6 @@ package com.cdlexample.contracts
 
 import com.cdlexample.states.AgreementState
 import com.cdlexample.states.AgreementStatus.*
-import com.cdlexample.states.Status
 import com.cdlexample.states.StatusState
 import net.corda.core.contracts.*
 import net.corda.core.identity.Party
@@ -44,13 +43,13 @@ class AgreementContract : Contract {
     inline fun <reified T: StatusState> verifyPathConstraints(tx: LedgerTransaction) = verifyPathConstraints(tx, T::class.java)
 
     // Java version
-    fun <T: StatusState> verifyPathConstraints(tx: LedgerTransaction, clazz: Class<T>){
+    fun <T: StatusState> verifyPathConstraints(tx: LedgerTransaction, primaryStateClass: Class<T>){
 
         val commandValue = tx.commands.requireSingleCommand<AgreementContract.Commands>().value
 
-        val txPath = getPath(tx, clazz, commandValue)
+        val txPath = getPath(tx, primaryStateClass, commandValue)
 
-        val inputStatus = requireSingleInputStatus(tx, clazz)
+        val inputStatus = requireSingleInputStatus(tx, primaryStateClass)
 
         val allowedPaths: List<PathConstraint<T>> = when (inputStatus){
             null -> listOf(
@@ -70,7 +69,7 @@ class AgreementContract : Contract {
         }
 
         requireThat {
-            "txPath must be allowed by PathConstraints for inputStatus $inputStatus" using verifyPath(txPath, allowedPaths)
+            "txPath must be allowed by PathConstraints for inputStatus $inputStatus." using verifyPath(txPath, allowedPaths)
         }
     }
 
@@ -87,7 +86,7 @@ class AgreementContract : Contract {
             }
         }
     }
-    // todo: add full stops into error messages
+
     fun verifyStatusConstraints(tx: LedgerTransaction){
         val allStates = tx.inputsOfType<AgreementState>() + tx.outputsOfType<AgreementState>()
 
@@ -97,15 +96,15 @@ class AgreementContract : Contract {
             when(s.status){
                 PROPOSED -> {
                     requireThat {
-                        "When status is Proposed rejectionReason must be null" using (s.rejectionReason == null)
-                        "When status is Rejected rejectedBy must be null" using (s.rejectedBy == null)
+                        "When status is Proposed rejectionReason must be null." using (s.rejectionReason == null)
+                        "When status is Rejected rejectedBy must be null." using (s.rejectedBy == null)
                     }
                 }
                 REJECTED -> {
                     requireThat {
-                        "When status is Rejected rejectionReason must not be null" using (s.rejectionReason != null)
-                        "When status is Rejected rejectedBy must not be null" using (s.rejectedBy != null)
-                        "When the Status is Rejected rejectedBy must be the buyer or seller" using (listOf(s.buyer, s.seller).contains(s.rejectedBy))
+                        "When status is Rejected rejectionReason must not be null." using (s.rejectionReason != null)
+                        "When status is Rejected rejectedBy must not be null." using (s.rejectedBy != null)
+                        "When the Status is Rejected rejectedBy must be the buyer or seller." using (listOf(s.buyer, s.seller).contains(s.rejectedBy))
                     }
                 }
                 AGREED -> {}
@@ -123,8 +122,8 @@ class AgreementContract : Contract {
         // This is a guard which shouldn't be triggered because the Path constraints should have already ensured there is
         // a maximum of one Primary input state and a maximum one Primary output state
         requireThat{
-            "When using LinearStates there should be a maximum of one Primary input state" using (inputStates.size <= 1)
-            "When using LinearStates there should be a maximum of one Primary output state" using (outputStates.size <= 1)
+            "When using LinearStates there should be a maximum of one Primary input state." using (inputStates.size <= 1)
+            "When using LinearStates there should be a maximum of one Primary output state." using (outputStates.size <= 1)
         }
 
         val inputState = inputStates.singleOrNull()
@@ -152,8 +151,8 @@ class AgreementContract : Contract {
         // This is a guard which shouldn't be triggered because the Path constraints should have already ensured there is
         // a maximum of one Primary input state and a maximum one Primary output state
         requireThat{
-            "when checking signing constraints there should be a maximum of one Primary input state" using (inputStates.size <= 1)
-            "When checking signing constraints there should be a maximum of one Primary output state" using (outputStates.size <= 1)
+            "when checking signing constraints there should be a maximum of one Primary input state." using (inputStates.size <= 1)
+            "When checking signing constraints there should be a maximum of one Primary output state." using (outputStates.size <= 1)
         }
 
         val inputState = inputStates.singleOrNull()
@@ -196,8 +195,12 @@ class AgreementContract : Contract {
                 // Path Constraints have already checked there is only one input and one output
                 val inputState = tx.inputsOfType<AgreementState>().single()
                 val outputState = tx.outputsOfType<AgreementState>().single()
+
                 // Note, to check the majority of properties haven't change the code copies the outputstate but sets the changing properties to that of the input state. if all the other properties are the same, the copy should match the input state.
-                requireThat {"When the command is Reject no properties can change except status, rejectionReason and rejectedBy." using (outputState.copy(status = inputState.status, rejectionReason = inputState.rejectionReason, rejectedBy = inputState.rejectedBy) == inputState)}
+                requireThat {"When the command is Reject no properties can change except status, rejectionReason and rejectedBy." using (outputState.copy(
+                        status = inputState.status,
+                        rejectionReason = inputState.rejectionReason,
+                        rejectedBy = inputState.rejectedBy) == inputState)}
             }
             is Commands.Repropose -> {
             }
