@@ -146,6 +146,8 @@ class ContractUtilsLedgerTests {
             // todo: Is it possible to re-write this so commandValue doesn't need to be passed to getPath (challenge: the commands are defined as an interface outside of Ultils and may or maynot be defined in the Contract Class using Utlis)
             val txPath = getPath(tx, clazz, commandValue)
 
+
+            // todo: change to when statement
             val pathConstraintsMap = mapOf<Status?, List<PathConstraint<T>>>(
                     TestState2A.TestStatus.STATUSA1 to listOf(
                             // PC1

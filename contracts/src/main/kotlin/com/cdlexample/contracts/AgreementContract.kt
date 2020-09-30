@@ -5,6 +5,7 @@ import com.cdlexample.states.AgreementStatus.*
 import com.cdlexample.states.Status
 import com.cdlexample.states.StatusState
 import net.corda.core.contracts.*
+import net.corda.core.identity.Party
 import net.corda.core.transactions.LedgerTransaction
 
 // ************
@@ -31,7 +32,6 @@ class AgreementContract : Contract {
 
         // todo: be clear which sub functions need to pass the class
 
-        verifyPathConstraints<AgreementState>(tx)
         verifyPathConstraints(tx, AgreementState::class.java)
         verifyUniversalConstraints(tx)
         verifyStatusConstraints(tx)
@@ -50,27 +50,27 @@ class AgreementContract : Contract {
 
         val txPath = getPath(tx, clazz, commandValue)
 
-        val pathMap = mapOf<Status?, List<PathConstraint<T>>>(
-            null to listOf(
+        val inputStatus = requireSingleInputStatus(tx, clazz)
+
+        val allowedPaths: List<PathConstraint<T>> = when (inputStatus){
+            null -> listOf(
                     PathConstraint(Commands.Propose(), PROPOSED, MultiplicityConstraint(0))
-            ),
-            PROPOSED to listOf(
+            )
+            PROPOSED -> listOf(
                     PathConstraint(Commands.Reject(), REJECTED),
                     PathConstraint(Commands.Agree(), AGREED)
-            ),
-            REJECTED to listOf(
+            )
+            REJECTED -> listOf(
                     PathConstraint(Commands.Repropose(), PROPOSED)
-            ),
-            AGREED to listOf(
+            )
+            AGREED -> listOf(
                     PathConstraint(Commands.Complete(), null, outputMultiplicityConstraint = MultiplicityConstraint(0))
             )
-        )
-        val inputStatus = requireSingleInputStatus(tx, clazz)
-        val allowedPaths = pathMap[inputStatus]
+            else -> listOf()
+        }
 
         requireThat {
-            "Input status must have a list of PathConstraints defined." using (allowedPaths != null)
-            "txPath must be allowed by PathConstraints for inputStatus $inputStatus" using verifyPath(txPath, allowedPaths!!)
+            "txPath must be allowed by PathConstraints for inputStatus $inputStatus" using verifyPath(txPath, allowedPaths)
         }
     }
 
@@ -117,50 +117,70 @@ class AgreementContract : Contract {
 
         val command = tx.commands.requireSingleCommand<AgreementContract.Commands>()
         val inputStates = tx.inputsOfType<AgreementState>()
-        val inputState = if (inputStates.isNotEmpty()) inputStates.single() else null
         val outputStates = tx.outputsOfType<AgreementState>()
-        val outputState = if (outputStates.isNotEmpty()) outputStates.single() else null
 
+        // Assume that if using LinearID we want a maximum of one Primary input state and a maximum one Primary output state
+        // This is a guard which shouldn't be triggered because the Path constraints should have already ensured there is
+        // a maximum of one Primary input state and a maximum one Primary output state
+        requireThat{
+            "When using LinearStates there should be a maximum of one Primary input state" using (inputStates.size <= 1)
+            "When using LinearStates there should be a maximum of one Primary output state" using (outputStates.size <= 1)
+        }
+
+        val inputState = inputStates.singleOrNull()
+        val outputState = outputStates.singleOrNull()
+
+        val commandName = command.value::class.java.simpleName
         when (command.value){
-            is Commands.Propose -> {
-            }
-            is Commands.Reject -> {
-                requireThat {"When the Command is Reject the LinearID must not change." using(inputState?.linearId == outputState?.linearId)}
-            }
-            is Commands.Repropose -> {
-                requireThat {"When the Command is Repropose the LinearID must not change." using (inputState?.linearId == outputState?.linearId)}
-            }
-            is Commands.Agree -> {
-                requireThat {"When the Command is Agree the LinearID must not change." using (inputState?.linearId == outputState?.linearId)}
-            }
-            is Commands.Complete -> {
+            is Commands.Reject,
+            is Commands.Repropose,
+            is Commands.Agree-> {
+                requireThat {"When the Command is $commandName the LinearID must not change." using(inputState?.linearId == outputState?.linearId)}
             }
         }
     }
 
     fun verifySigningConstraints(tx: LedgerTransaction){
 
+        // This implementation assumes there is a maximum of one Primary input state and a maximum one Primary output state.
+        // For Contracts which assume multiple Primary inputs or Output a different approach will be required
+
         val command = tx.commands.requireSingleCommand<AgreementContract.Commands>()
         val inputStates = tx.inputsOfType<AgreementState>()
-        val inputState = if (inputStates.isNotEmpty()) inputStates.single() else null
         val outputStates = tx.outputsOfType<AgreementState>()
-        val outputState = if (outputStates.isNotEmpty()) outputStates.single() else null
+
+        // This is a guard which shouldn't be triggered because the Path constraints should have already ensured there is
+        // a maximum of one Primary input state and a maximum one Primary output state
+        requireThat{
+            "when checking signing constraints there should be a maximum of one Primary input state" using (inputStates.size <= 1)
+            "When checking signing constraints there should be a maximum of one Primary output state" using (outputStates.size <= 1)
+        }
+
+        val inputState = inputStates.singleOrNull()
+        val outputState = outputStates.singleOrNull()
+
+        val commandName = command.value::class.java.simpleName
+
+        fun checkSigner(signerDescription: String, signer: Party?){
+            requireThat { "When the Command is $commandName the $signerDescription must sign." using (command.signers.contains(signer?.owningKey))}
+
+        }
 
         when (command.value){
             is Commands.Propose -> {
-                requireThat { "When Command is Propose the output.proposer should sign." using(command.signers.contains(outputState?.proposer?.owningKey))}
+                checkSigner("output.proposer", outputState?.proposer)   // Can add multiple signing check against each Command
             }
             is Commands.Reject -> {
-                requireThat {"When the Command is Reject the output.rejectedBy Party must sign." using(command.signers.contains(outputState?.rejectedBy?.owningKey))}
+                checkSigner("output.rejectedBy", outputState?.rejectedBy)
             }
             is Commands.Repropose -> {
-                requireThat {"When the Command is Repropose the output.proposer must sign." using (command.signers.contains(outputState?.proposer?.owningKey))}
+                checkSigner("output.proposer", outputState?.proposer)
             }
             is Commands.Agree -> {
-                requireThat {"When the Command is Agree the input.consenter must sign." using (command.signers.contains(inputState?.consenter?.owningKey))}
+                checkSigner("input.consenter", inputState?.consenter )
             }
             is Commands.Complete -> {
-                requireThat {"When the command is Complete the input.seller must sign." using (command.signers.contains(inputState?.seller?.owningKey))}
+                checkSigner("input.seller", inputState?.seller)
             }
         }
     }
@@ -170,11 +190,16 @@ class AgreementContract : Contract {
         val command = tx.commands.requireSingleCommand<AgreementContract.Commands>()
 
         when (command.value){
+            is Commands.Propose -> {
+            }
             is Commands.Reject -> {
                 // Path Constraints have already checked there is only one input and one output
                 val inputState = tx.inputsOfType<AgreementState>().single()
                 val outputState = tx.outputsOfType<AgreementState>().single()
+                // Note, to check the majority of properties haven't change the code copies the outputstate but sets the changing properties to that of the input state. if all the other properties are the same, the copy should match the input state.
                 requireThat {"When the command is Reject no properties can change except status, rejectionReason and rejectedBy." using (outputState.copy(status = inputState.status, rejectionReason = inputState.rejectionReason, rejectedBy = inputState.rejectedBy) == inputState)}
+            }
+            is Commands.Repropose -> {
             }
             is Commands.Agree -> {
                 requireThat {
@@ -184,6 +209,7 @@ class AgreementContract : Contract {
                     requireThat {"When the command is Agree no properties can change except status." using (outputState.copy(status = inputState.status) == inputState)}
                 }
             }
+            is Commands.Complete -> {}
         }
     }
 }

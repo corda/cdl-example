@@ -11,6 +11,8 @@ import net.corda.testing.node.ledger
 import org.junit.Test
 import java.util.*
 
+// todo: make sure error messages are consistent
+
 class AgreementContractTests {
     private val ledgerServices = MockServices()
 
@@ -441,12 +443,12 @@ class AgreementContractTests {
             transaction {
                 command(bob.publicKey, AgreementContract.Commands.Propose())
                 output(AgreementContract.ID, proposed1)
-                failsWith("When Command is Propose the output.proposer should sign.")
+                failsWith("When the Command is Propose the output.proposer must sign.")
             }
             transaction {
                 command(charlie.publicKey, AgreementContract.Commands.Propose())
                 output(AgreementContract.ID, proposed1)
-                failsWith("When Command is Propose the output.proposer should sign.")
+                failsWith("When the Command is Propose the output.proposer must sign.")
             }
             transaction {
                 command(listOf(alice.publicKey, charlie.publicKey), AgreementContract.Commands.Propose())
@@ -459,13 +461,13 @@ class AgreementContractTests {
                 input(AgreementContract.ID, proposed1)
                 command(alice.publicKey, AgreementContract.Commands.Reject())
                 output(AgreementContract.ID, rejected)
-                failsWith("When the Command is Reject the output.rejectedBy Party must sign.")
+                failsWith("When the Command is Reject the output.rejectedBy must sign.")
             }
             transaction {
                 input(AgreementContract.ID, proposed1)
                 command(charlie.publicKey, AgreementContract.Commands.Reject())
                 output(AgreementContract.ID, rejected)
-                failsWith("When the Command is Reject the output.rejectedBy Party must sign.")
+                failsWith("When the Command is Reject the output.rejectedBy must sign.")
             }
             transaction {
                 input(AgreementContract.ID, proposed1)
