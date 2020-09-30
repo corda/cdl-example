@@ -23,7 +23,7 @@ class PathConstraint<T: StatusState>(val command: CommandData,
                      val outputStatus: Status?,
                      val inputMultiplicityConstraint: MultiplicityConstraint = MultiplicityConstraint(),
                      val outputMultiplicityConstraint: MultiplicityConstraint = MultiplicityConstraint(),
-                     val additionalStatesConstraints: Set<AdditionalStatesConstraint> =  setOf()){    // todo: should this be a set, could it give different error messages depending on the order of evaluation
+                     val additionalStatesConstraints: Set<AdditionalStatesConstraint> =  setOf()){
 
     infix fun allows(p: Path<T>): Boolean =
         (command::class.java == p.command::class.java) &&
@@ -85,38 +85,36 @@ fun <T: StatusState>requireSingleStatus (states: List<T>, error: String): Status
     return distinctStatuses.firstOrNull()
 }
 
+fun AdditionalStatesType.getAdditionalStates(tx: LedgerTransaction, stateClass: Class<out ContractState>): AdditionalStates =
+        AdditionalStates(this, stateClass, this.getStates(tx, stateClass).size)
+
+fun AdditionalStatesType.getStates(tx: LedgerTransaction, stateClass: Class<out ContractState>): List<out ContractState> =
+    when(this) {
+        AdditionalStatesType.INPUT -> tx.inputsOfType(stateClass)
+        AdditionalStatesType.OUTPUT -> tx.outputsOfType(stateClass)
+        AdditionalStatesType.REFERENCE -> tx.referenceInputsOfType(stateClass)
+    }
+
+
+
+
 fun <T: StatusState>getPath(tx:LedgerTransaction, primaryStateClass: Class<T>, commandValue: CommandData): Path<T> {
 
     val outputStatus = requireSingleOutputStatus(tx, primaryStateClass)
 
-    val primaryInputStates = tx.inputsOfType(primaryStateClass)
-    val primaryOutputStates = tx.outputsOfType(primaryStateClass)
+    fun List<ContractState>.getAdditional(type: AdditionalStatesType) = asSequence()
+            .map { it::class.java }
+            .filter { it != primaryStateClass }
+            .distinct()
+            .map { type.getAdditionalStates(tx, it) }
 
     // todo: consider what to do with reference states of primary type
 
-    // get Additional Inputs
-    val remainingInputs = tx.inputStates - primaryInputStates
-    val distinctInputTypes = remainingInputs.map { it::class.java }.distinct()
-    val mList = mutableListOf<AdditionalStates>()
-    for (dt in distinctInputTypes){
-        mList.add(AdditionalStates(AdditionalStatesType.INPUT, dt, tx.inputsOfType(dt).size))
-    }
+    val additionalInputs = tx.inputStates.getAdditional(AdditionalStatesType.INPUT)
+    val additionalOutputs = tx.inputStates.getAdditional(AdditionalStatesType.OUTPUT)
+    val additionalReferences = tx.referenceStates.getAdditional(AdditionalStatesType.REFERENCE)
 
-    // Get Additional Outputs
-    val remainingOutputs = tx.outputStates - primaryOutputStates
-    val distinctOutputTypes = remainingOutputs.map { it::class.java }.distinct()
-    for (dt in distinctOutputTypes){
-        mList.add(AdditionalStates(AdditionalStatesType.OUTPUT, dt, tx.outputsOfType(dt).size))
-    }
+    val additionalStates = (additionalInputs + additionalOutputs + additionalReferences).toSet()
 
-    // Get Additional References
-    val references = tx.referenceStates
-    val distinctReferenceTypes = references.map { it::class.java }.distinct()
-    for (dt in distinctReferenceTypes){
-        mList.add(AdditionalStates(AdditionalStatesType.REFERENCE, dt, tx.referenceInputsOfType(dt).size))
-    }
-
-    val additionalStates = mList.toSet()
-
-    return  Path<T>(commandValue, outputStatus, primaryInputStates.size, primaryOutputStates.size, additionalStates)
+    return  Path(commandValue, outputStatus, tx.referenceInputsOfType(primaryStateClass).size, tx.outputsOfType(primaryStateClass).size, additionalStates)
 }
