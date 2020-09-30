@@ -25,42 +25,39 @@ class PathConstraint<T: StatusState>(val command: CommandData,
                      val outputMultiplicityConstraint: MultiplicityConstraint = MultiplicityConstraint(),
                      val additionalStatesConstraints: Set<AdditionalStatesConstraint> =  setOf()){    // todo: should this be a set, could it give different error messages depending on the order of evaluation
 
-    infix fun allows(p: Path<T>): Boolean = when {
-        (command::class.java != p.command::class.java) -> false
-        (outputStatus != p.outputStatus)  -> false
-        (inputMultiplicityConstraint doesNotAllow p.numberOfInputStates) -> false
-        (outputMultiplicityConstraint doesNotAllow p.numberOfOutputStates) -> false
-        (!additionalStatesCheck(additionalStatesConstraints, p.additionalStates)) -> false
-        else -> true
-    }
+    infix fun allows(p: Path<T>): Boolean =
+        (command::class.java == p.command::class.java) &&
+        (outputStatus == p.outputStatus) &&
+        (inputMultiplicityConstraint allows p.numberOfInputStates) &&
+        (outputMultiplicityConstraint allows p.numberOfOutputStates) &&
+        additionalStatesCheck(additionalStatesConstraints, p.additionalStates)
 
     infix fun doesNotAllow(p: Path<T>): Boolean = !this.allows(p)
 
+    // For all AdditionalStatesConstraints there must be an AdditionalState which satisfies it.
+    // Note, where the required number of states can be 0, we need to check the case where there are no states of that type, which will satisfy the constraint.
     private fun additionalStatesCheck(constraints: Set<AdditionalStatesConstraint>, additionalStates: Set<AdditionalStates>) :Boolean =
-            constraints.all { c -> additionalStates.any { s -> c isSatisfiedBy s} ||
-                                                                            c.requiredNumberOfStates.from == 0 && additionalStates.none { it.clazz == c.clazz }
+            constraints.all { c->
+                additionalStates.any { s->
+                    c isSatisfiedBy s} || c.requiredNumberOfStates.from == 0 && additionalStates.none { it.clazz == c.clazz }
             }
 }
 
 class AdditionalStatesConstraint(val type: AdditionalStatesType ,val clazz: Class<out ContractState>, val requiredNumberOfStates: MultiplicityConstraint = MultiplicityConstraint()) {
 
-    infix fun isSatisfiedBy(additionalStates: AdditionalStates ):Boolean = when {
-        (type != additionalStates.type) -> false
-        (clazz != additionalStates.clazz) -> false
-        (requiredNumberOfStates.doesNotAllow(additionalStates.numberOfStates)) -> false
-        else -> true
-    }
+    infix fun isSatisfiedBy(additionalStates: AdditionalStates ):Boolean =
+        (type == additionalStates.type) &&
+        (clazz == additionalStates.clazz) &&
+        (requiredNumberOfStates allows additionalStates.numberOfStates)
 
     infix fun isNotSatisfiedBy (additionalStates: AdditionalStates): Boolean = !isSatisfiedBy(additionalStates)
 }
 
 class MultiplicityConstraint(val from: Int = 1, val bounded: Boolean = true, val upperBound: Int = from){
 
-    infix fun allows(numberOfStates: Int): Boolean = when {
-        (numberOfStates < from) -> false
-        (bounded && numberOfStates > upperBound) -> false
-        else -> true
-    }
+    infix fun allows(numberOfStates: Int): Boolean =
+        (numberOfStates >= from) &&
+        (!bounded || numberOfStates <= upperBound)
 
     infix fun doesNotAllow(numberOfStates: Int): Boolean = !this.allows(numberOfStates)
 }
@@ -82,10 +79,10 @@ fun <T: StatusState>requireSingleOutputStatus(tx:LedgerTransaction, clazz: Class
 }
 
 fun <T: StatusState>requireSingleStatus (states: List<T>, error: String): Status?{
-    val statuses = states.map {it.status}.distinct()
+    val distinctStatuses = states.map {it.status}.distinct()
     requireThat {
-        error using ( statuses.size <= 1)}
-    return if (states.isNotEmpty()) states.first().status else null
+        error using ( distinctStatuses.size <= 1)}
+    return distinctStatuses.firstOrNull()
 }
 
 fun <T: StatusState>getPath(tx:LedgerTransaction, primaryStateClass: Class<T>, commandValue: CommandData): Path<T> {
