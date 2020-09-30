@@ -46,7 +46,7 @@ As smart Contracts become more complicated, the risk of missing some important c
         verifyPathConstraints(tx, AgreementState::class.java)
         verifyUniversalConstraints(tx)
         verifyStatusConstraints(tx)
-        verifyLinearIDConstraints(tx, AgreementState::class.java)
+        verifyLinearIDConstraints(tx)
         verifySigningConstraints(tx)
         verifyCommandConstraints(tx)
     }
@@ -289,7 +289,7 @@ which would default to
 - 1 output Primary State type
 - no additional states required
 
-Or they could get much more complicated (this example is from the test scripts): 
+Or they could get much more complicated as in this example from the test scripts: 
 
 ```kotlin
 PathConstraint(Commands.Command2(), TestState2A.TestStatus.STATUSA2, additionalStatesConstraints = setOf(
@@ -306,36 +306,35 @@ PathConstraint(Commands.Command2(), TestState2A.TestStatus.STATUSA2, additionalS
 The classes for Paths and PathConstraints are all provided in the ContractUtlis file, this means that the verifyPathConstraints() function is actually very simple to write:
 
 ```kotlin
-    fun <T: StatusState> verifyPathConstraints(tx: LedgerTransaction, clazz: Class<T>){
+    fun <T: StatusState> verifyPathConstraints(tx: LedgerTransaction, primaryStateClass: Class<T>){
 
-        val commandValue = tx.commands.requireSingleCommand<AgreementContract.Commands>().value   // get the command
+        val commandValue = tx.commands.requireSingleCommand<AgreementContract.Commands>().value    // get the command
 
-        val txPath = getPath(tx, clazz, commandValue)       // call the utility function to get the Path of the transaction
+        val txPath = getPath(tx, primaryStateClass, commandValue)       // call the getPath() utility function to get the Path of the transaction
 
-        val pathMap = mapOf<Status?, List<PathConstraint<T>>>(      // populate the map of statuses -> allowed constraints
-            null to listOf(
-                    PathConstraint(Commands.Propose(), PROPOSED, MultiplicityConstraint(0))     // define the constraints
-            ),
-            PROPOSED to listOf(
+        val inputStatus = requireSingleInputStatus(tx, primaryStateClass)       // get the Primary state status
+
+        val allowedPaths: List<PathConstraint<T>> = when (inputStatus){        // populate the when clause mapping: statuses -> allowed constraints
+            null -> listOf(
+                    PathConstraint(Commands.Propose(), PROPOSED, MultiplicityConstraint(0))
+            )
+            PROPOSED -> listOf(
                     PathConstraint(Commands.Reject(), REJECTED),
                     PathConstraint(Commands.Agree(), AGREED)
-            ),
-            REJECTED to listOf(
+            )
+            REJECTED -> listOf(
                     PathConstraint(Commands.Repropose(), PROPOSED)
-            ),
-            AGREED to listOf(
+            )
+            AGREED -> listOf(
                     PathConstraint(Commands.Complete(), null, outputMultiplicityConstraint = MultiplicityConstraint(0))
             )
-        )
-        val inputStatus = requireSingleInputStatus(tx, clazz)       // get the Primary state status
-        val allowedPaths = pathMap[inputStatus]                     // get the allowed path for the status
+            else -> listOf()
+        }
 
         requireThat {
-            "Input status must have a list of PathConstraints defined." using (allowedPaths != null)        // check that the map is filled in
-            "txPath must be allowed by PathConstraints for inputStatus $inputStatus" using verifyPath(txPath, allowedPaths!!)       // call the utility function to check the paths
+            "txPath must be allowed by PathConstraints for inputStatus $inputStatus." using verifyPath(txPath, allowedPaths) // call the utility function to check the paths
         }
     }
-
 ```
 
 Because a lot of the heavy lifting has be moved to the ContractUtils, this pattern can be replicated for other Contracts by substituting in the specific Statuses and the PathConstraints for each status.

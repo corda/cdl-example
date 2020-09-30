@@ -34,7 +34,7 @@ class AgreementContract : Contract {
         verifyPathConstraints(tx, AgreementState::class.java)
         verifyUniversalConstraints(tx)
         verifyStatusConstraints(tx)
-        verifyLinearIDConstraints(tx, AgreementState::class.java)
+        verifyLinearIDConstraints(tx)
         verifySigningConstraints(tx)
         verifyCommandConstraints(tx)
     }
@@ -112,7 +112,7 @@ class AgreementContract : Contract {
         }
     }
 
-    fun <T: StatusState> verifyLinearIDConstraints(tx: LedgerTransaction, clazz: Class<T>){
+    fun verifyLinearIDConstraints(tx: LedgerTransaction){
 
         val command = tx.commands.requireSingleCommand<AgreementContract.Commands>()
         val inputStates = tx.inputsOfType<AgreementState>()

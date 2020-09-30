@@ -13,7 +13,7 @@ class Path<T: StatusState>(val command: CommandData,
                 val numberOfOutputStates: Int,
                 val additionalStates: Set<AdditionalStates> = setOf())
 
-class AdditionalStates(val type: AdditionalStatesType, val clazz: Class<out ContractState>, val numberOfStates: Int)
+class AdditionalStates(val type: AdditionalStatesType, val statesClass: Class<out ContractState>, val numberOfStates: Int)
 
 enum class AdditionalStatesType {INPUT, OUTPUT, REFERENCE}
 
@@ -39,15 +39,15 @@ class PathConstraint<T: StatusState>(val command: CommandData,
     private fun additionalStatesCheck(constraints: Set<AdditionalStatesConstraint>, additionalStates: Set<AdditionalStates>) :Boolean =
             constraints.all { c->
                 additionalStates.any { s->
-                    c isSatisfiedBy s} || c.requiredNumberOfStates.from == 0 && additionalStates.none { it.clazz == c.clazz }
+                    c isSatisfiedBy s} || c.requiredNumberOfStates.from == 0 && additionalStates.none { it.statesClass == c.statesClass }
             }
 }
 
-class AdditionalStatesConstraint(val type: AdditionalStatesType ,val clazz: Class<out ContractState>, val requiredNumberOfStates: MultiplicityConstraint = MultiplicityConstraint()) {
+class AdditionalStatesConstraint(val type: AdditionalStatesType, val statesClass: Class<out ContractState>, val requiredNumberOfStates: MultiplicityConstraint = MultiplicityConstraint()) {
 
     infix fun isSatisfiedBy(additionalStates: AdditionalStates ):Boolean =
         (type == additionalStates.type) &&
-        (clazz == additionalStates.clazz) &&
+        (statesClass == additionalStates.statesClass) &&
         (requiredNumberOfStates allows additionalStates.numberOfStates)
 
     infix fun isNotSatisfiedBy (additionalStates: AdditionalStates): Boolean = !isSatisfiedBy(additionalStates)
@@ -68,14 +68,14 @@ fun <T: StatusState> verifyPath(p: Path<T>, pathConstraintList: List<PathConstra
 
 inline fun <reified T: StatusState>requireSingleInputStatus(tx:LedgerTransaction): Status? = requireSingleInputStatus(tx, T::class.java)
 
-fun <T: StatusState>requireSingleInputStatus(tx:LedgerTransaction, clazz: Class<T>): Status?{
-    return requireSingleStatus(tx.inputsOfType(clazz),"All inputs of type ${clazz.simpleName} must have the same status.")
+fun <T: StatusState>requireSingleInputStatus(tx:LedgerTransaction, statesClass: Class<T>): Status?{
+    return requireSingleStatus(tx.inputsOfType(statesClass),"All inputs of type ${statesClass.simpleName} must have the same status.")
 }
 
 inline fun <reified T: StatusState>requireSingleOutputStatus(tx:LedgerTransaction): Status? = requireSingleOutputStatus(tx, T::class.java)
 
-fun <T: StatusState>requireSingleOutputStatus(tx:LedgerTransaction, clazz: Class<T>): Status?{
-    return requireSingleStatus(tx.outputsOfType(clazz), "All outputs of type ${clazz.simpleName} must have the same status.")
+fun <T: StatusState>requireSingleOutputStatus(tx:LedgerTransaction, statesClass: Class<T>): Status?{
+    return requireSingleStatus(tx.outputsOfType(statesClass), "All outputs of type ${statesClass.simpleName} must have the same status.")
 }
 
 fun <T: StatusState>requireSingleStatus (states: List<T>, error: String): Status?{
@@ -85,18 +85,15 @@ fun <T: StatusState>requireSingleStatus (states: List<T>, error: String): Status
     return distinctStatuses.firstOrNull()
 }
 
-fun AdditionalStatesType.getAdditionalStates(tx: LedgerTransaction, stateClass: Class<out ContractState>): AdditionalStates =
-        AdditionalStates(this, stateClass, this.getStates(tx, stateClass).size)
+fun AdditionalStatesType.getAdditionalStates(tx: LedgerTransaction, statesClass: Class<out ContractState>): AdditionalStates =
+        AdditionalStates(this, statesClass, this.getStates(tx, statesClass).size)
 
-fun AdditionalStatesType.getStates(tx: LedgerTransaction, stateClass: Class<out ContractState>): List<out ContractState> =
+fun AdditionalStatesType.getStates(tx: LedgerTransaction, statesClass: Class<out ContractState>): List<out ContractState> =
     when(this) {
-        AdditionalStatesType.INPUT -> tx.inputsOfType(stateClass)
-        AdditionalStatesType.OUTPUT -> tx.outputsOfType(stateClass)
-        AdditionalStatesType.REFERENCE -> tx.referenceInputsOfType(stateClass)
+        AdditionalStatesType.INPUT -> tx.inputsOfType(statesClass)
+        AdditionalStatesType.OUTPUT -> tx.outputsOfType(statesClass)
+        AdditionalStatesType.REFERENCE -> tx.referenceInputsOfType(statesClass)
     }
-
-
-
 
 fun <T: StatusState>getPath(tx:LedgerTransaction, primaryStateClass: Class<T>, commandValue: CommandData): Path<T> {
 
