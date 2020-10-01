@@ -85,25 +85,22 @@ fun <T: StatusState>requireSingleStatus (states: List<T>, error: String): Status
     return distinctStatuses.firstOrNull()
 }
 
-fun AdditionalStatesType.getAdditionalStates(tx: LedgerTransaction, statesClass: Class<out ContractState>): AdditionalStates =
-        AdditionalStates(this, statesClass, this.getStates(tx, statesClass).size)
-
-fun AdditionalStatesType.getStates(tx: LedgerTransaction, statesClass: Class<out ContractState>): List<out ContractState> =
-    when(this) {
-        AdditionalStatesType.INPUT -> tx.inputsOfType(statesClass)
-        AdditionalStatesType.OUTPUT -> tx.outputsOfType(statesClass)
-        AdditionalStatesType.REFERENCE -> tx.referenceInputsOfType(statesClass)
-    }
-
 fun <T: StatusState>getPath(tx:LedgerTransaction, primaryStateClass: Class<T>, commandValue: CommandData): Path<T> {
 
     val outputStatus = requireSingleOutputStatus(tx, primaryStateClass)
+
+
+    fun getStatesForType(type: AdditionalStatesType, statesClass: Class<out ContractState> ): List<ContractState> = when (type){
+                AdditionalStatesType.INPUT -> tx.inputsOfType(statesClass)
+                AdditionalStatesType.OUTPUT -> tx.outputsOfType(statesClass)
+                AdditionalStatesType.REFERENCE -> tx.referenceInputsOfType(statesClass)
+            }
 
     fun List<ContractState>.getAdditional(type: AdditionalStatesType) = asSequence()
             .map { it::class.java }
             .filter { it != primaryStateClass }
             .distinct()
-            .map { type.getAdditionalStates(tx, it) }
+            .map { AdditionalStates(type, it, getStatesForType(type, it).size) }
 
     // todo: consider what to do with reference states of primary type
 
