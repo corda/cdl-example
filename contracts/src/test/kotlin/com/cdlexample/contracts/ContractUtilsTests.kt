@@ -1,7 +1,5 @@
 package com.cdlexample.contracts
 
-import com.cdlexample.states.Status
-import com.cdlexample.states.StatusState
 import net.corda.core.contracts.BelongsToContract
 import net.corda.core.contracts.CommandData
 import net.corda.core.contracts.Contract

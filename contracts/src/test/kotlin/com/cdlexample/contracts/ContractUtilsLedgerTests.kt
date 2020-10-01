@@ -1,9 +1,5 @@
 package com.cdlexample.contracts
 
-import com.cdlexample.states.AgreementState
-import com.cdlexample.states.Status
-import com.cdlexample.states.StatusState
-import net.bytebuddy.implementation.bytecode.Addition
 import net.corda.core.contracts.*
 import net.corda.core.identity.AbstractParty
 import net.corda.core.identity.CordaX500Name

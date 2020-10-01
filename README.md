@@ -196,7 +196,7 @@ class AdditionalStates(val type: AdditionalStatesType, val clazz: Class<out Cont
 enum class AdditionalStatesType {INPUT, OUTPUT, REFERENCE}
 ```
 Where: 
-- `command` represents the command.value in the transaction which relates to the Primary State's Contract (there could be other commands in the transaction but they are not dealt with by Paths) 
+- `command` represents the command.value in the transaction which relates to the Primary State's Contract (there could be other commands in the transaction but they are not dealt with by Paths). 
 - `outputStatus` represents the status of the output Primary State. it will be null if there is no output state.
 - `numberOfInputStates` represents the number of States of the Primary State type in the transaction. 
 - `numberOfOutputStates` represents the number of States of the Primary State type in the transaction. 
@@ -204,13 +204,13 @@ Where:
 
 In this CorDapp:
 
-- `numberOfInputStates` and `numberOfOutputStates` are going to be set to 0 or 1, because for any given agreement we only want to have a maximum of one AgreementState unconsumed at any point in time representing the latest state of this agreement. However, in other use cases there could be different Multiplicities involved
-- `additionalStates` will be used to represent the BillingChips required in the Agree Paths (Although this is not implemented yet)
+- `numberOfInputStates` and `numberOfOutputStates` are going to be set to 0 or 1, because for any given agreement we only want to have a maximum of one AgreementState unconsumed at any point in time representing the latest state of this agreement. However, in other use cases there could be different Multiplicities involved.
+- `additionalStates` will be used to represent the BillingChips required in the Agree Paths (Although this is not implemented yet).
 
 
 ## PathConstraints
 
-PathConstraints are used to restrict Paths that are allowed in a transaction. The Contract defines a set of PathConstraints for each Primary State status, for example when in status X you can follow PathConstraint A or B, but when you are in state Y you can only follow PathConstraint C .
+PathConstraints are used to restrict Paths that are allowed in a transaction. The Contract defines a set of PathConstraints for each Primary State status, for example when in status X you can follow PathConstraint A or B, but when you are in state Y you can only follow PathConstraint C.
 
 In order to pass the verify the Path in the transaction needs to comply to at least one of the allowed PathConstraints for the Status of the Primary Input State. 
 
@@ -234,19 +234,19 @@ class PathConstraint<T: StatusState>(val command: CommandData,
 
 ```
 Where:
-- `command` is the class of the command required
-- `outputStatus` is the outputStatus of the Primary State that is required
-- `inputMultiplicityConstraint` defines the range of number of inputs of Primary type that is required  
-- `outputMultiplicityConstraint` defines the range of number of outputs of Primary type that is required
-- `additionalStatesConstraint` defines which additional states must be present in the transaction
+- `command` is the class of the command required.
+- `outputStatus` is the outputStatus of the Primary State that is required.
+- `inputMultiplicityConstraint` defines the range of number of inputs of Primary type that is required.
+- `outputMultiplicityConstraint` defines the range of number of outputs of Primary type that is required.
+- `additionalStatesConstraint` defines which additional states must be present in the transaction.
 
-A Path will only be allowed by the PathConstraint if it passes all these requirements
+A Path will only be allowed by the PathConstraint if it passes all these requirements.
 
 `additionalStatesConstraint` are implemented as follows:
 
 ```kotlin
 class AdditionalStatesConstraint(val type: AdditionalStatesType ,
-                                 val clazz: Class<out ContractState>, 
+                                 val statesClass: Class<out ContractState>, 
                                  val requiredNumberOfStates: MultiplicityConstraint = MultiplicityConstraint()) {
 
     infix fun isSatisfiedBy(additionalStates: AdditionalStates ):Boolean {...}
@@ -256,9 +256,9 @@ class AdditionalStatesConstraint(val type: AdditionalStatesType ,
 ```
 
 where: 
-- `type` is INPUT, OUTPUT or REFERENCE
-- `clazz` is the required type of the additional states
-- `requiredNumberOfStates` defines how many AdditionalStates of this type are allowed using a `MultiplicityConstraint`
+- `type` is INPUT, OUTPUT or REFERENCE.
+- `clazz` is the required type of the additional states.
+- `requiredNumberOfStates` defines how many AdditionalStates of this type are allowed using a `MultiplicityConstraint`.
 
 `MultiplicityConstraint` are defined as follows:
 
@@ -274,9 +274,9 @@ class MultiplicityConstraint(val from: Int = 1,
 ```
 
 where: 
-- `from` is the minimum number of states
-- `bounded` specifies if there is an upper limit 
-- `upperbound` specifies the upperbound, which is only applied if `bounded` is true
+- `from` is the minimum number of states.
+- `bounded` specifies if there is an upper limit. 
+- `upperbound` specifies the upperbound, which is only applied if `bounded` is true.
 
 Note, the structure above allows for quite complex definition of what is allowed, in most cases these won't be needed. To simplify the use of PathConstraints most properties are defaulted. So for example you can specify a Path constraint simply as:
 

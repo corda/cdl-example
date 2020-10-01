@@ -2,7 +2,6 @@ package com.cdlexample.contracts
 
 import com.cdlexample.states.AgreementState
 import com.cdlexample.states.AgreementStatus.*
-import com.cdlexample.states.StatusState
 import net.corda.core.contracts.*
 import net.corda.core.identity.Party
 import net.corda.core.transactions.LedgerTransaction
