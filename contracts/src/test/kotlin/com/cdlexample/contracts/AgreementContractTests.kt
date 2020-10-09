@@ -142,7 +142,7 @@ class AgreementContractTests {
             transaction {
                 command(alice.publicKey, AgreementContract.Commands.Reject())
                 output(AgreementContract.ID, proposedState)
-                `fails with`("txPath must be allowed by PathConstraints for inputStatus null.")
+                `fails with`("Number of input states and output states must be the same")
             }
             transaction {
                 command(alice.publicKey, AgreementContract.Commands.Repropose())
@@ -224,7 +224,7 @@ class AgreementContractTests {
                 input(AgreementContract.ID, rejectedState)
                 command(alice.publicKey, AgreementContract.Commands.Reject())
                 output(AgreementContract.ID, proposedState)
-                `fails with`("txPath must be allowed by PathConstraints for inputStatus REJECTED.")
+                `fails with`("The status must be transitioning from Proposed to Rejected")
             }
             transaction {
                 input(AgreementContract.ID, rejectedState)
@@ -268,7 +268,7 @@ class AgreementContractTests {
             transaction {
                 input(AgreementContract.ID, agreedState)
                 command(alice.publicKey, AgreementContract.Commands.Reject())
-                `fails with`("txPath must be allowed by PathConstraints for inputStatus AGREED.")
+                `fails with`("Number of input states and output states must be the same")
             }
             transaction {
                 input(AgreementContract.ID, agreedState)
@@ -402,7 +402,7 @@ class AgreementContractTests {
                 input(AgreementContract.ID, proposed1)
                 command(bob.publicKey, AgreementContract.Commands.Reject())
                 output(AgreementContract.ID, rejected)
-                failsWith("When the Command is Reject the LinearID must not change.")
+                failsWith("Each input state must have a corresponding output state (with same linear id)")
             }
             transaction {
                 input(AgreementContract.ID, rejected)
