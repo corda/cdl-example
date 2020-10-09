@@ -571,7 +571,7 @@ class AgreementContractTests {
                 input(AgreementContract.ID, proposed1)
                 command(bob.publicKey, AgreementContract.Commands.Reject())
                 output(AgreementContract.ID, rejected)
-                failsWith("When the command is Reject no properties can change except status, rejectionReason and rejectedBy.")
+                failsWith("Property 'goods' is not allowed to change between input and output")
             }
 
             // Agree

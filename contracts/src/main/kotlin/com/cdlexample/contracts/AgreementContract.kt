@@ -28,6 +28,7 @@ class AgreementContract : StandardContract(Commands::class.java), Contract {
         class Repropose: Commands
 
         @AllowedStatusChangeInCoupledLinearStates("Proposed", "Rejected")
+        @LimitedChangeInCoupledLinearStates("status", "rejectionReason", "rejectedBy")
         class Reject: Commands
 
         @AllowedStatusChangeInCoupledLinearStates("Proposed", "Agreed")
@@ -45,12 +46,12 @@ class AgreementContract : StandardContract(Commands::class.java), Contract {
 
         // todo: be clear which sub functions need to pass the class
 
-        verifyPathConstraints(tx, AgreementState::class.java)
+        //verifyPathConstraints(tx, AgreementState::class.java)
         verifyUniversalConstraints(tx)
         verifyStatusConstraints(tx)
         verifyLinearIDConstraints(tx)
         verifySigningConstraints(tx)
-        verifyCommandConstraints(tx)
+        //verifyCommandConstraints(tx)
     }
 
     // Kotlin version
