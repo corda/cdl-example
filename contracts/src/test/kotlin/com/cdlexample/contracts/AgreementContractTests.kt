@@ -69,14 +69,19 @@ class AgreementContractTests {
 
     // todo: should this test move to ContractUtilsTest as the functions called are now in Contractutils
     @Test
-    fun `check all inputs of type AgreementState have the same Status`() {
+    fun `check all inputs of type AgreementState are in Proposed status when agreed on`() {
 
 
-        val linearId = UniqueIdentifier()
-        val input1 = AgreementState(AgreementStatus.PROPOSED,
-                alice.party, bob.party, "Some grapes", Amount(10, Currency.getInstance("GBP")), alice.party, bob.party, linearId = linearId)
-        val input2 = AgreementState(AgreementStatus.PROPOSED, alice.party, bob.party, "Some more grapes", Amount(10, Currency.getInstance("GBP")), alice.party, bob.party, linearId = linearId)
-        val input3 = AgreementState(AgreementStatus.AGREED, alice.party, bob.party, "yet more grapes", Amount(10, Currency.getInstance("GBP")), alice.party, bob.party, linearId = linearId)
+        val linearId1 = UniqueIdentifier()
+        val linearId2 = UniqueIdentifier()
+        val linearId3 = UniqueIdentifier()
+        val input1 = AgreementState(AgreementStatus.PROPOSED, alice.party, bob.party, "Some grapes", Amount(10, Currency.getInstance("GBP")), alice.party, bob.party, linearId = linearId1)
+        val input2 = AgreementState(AgreementStatus.PROPOSED, alice.party, bob.party, "Some more grapes", Amount(10, Currency.getInstance("GBP")), alice.party, bob.party, linearId = linearId2)
+        val input3 = AgreementState(AgreementStatus.AGREED, alice.party, bob.party, "yet more grapes", Amount(10, Currency.getInstance("GBP")), alice.party, bob.party, linearId = linearId3)
+
+        val output1 = AgreementState(AgreementStatus.AGREED, alice.party, bob.party, "Some grapes", Amount(10, Currency.getInstance("GBP")), alice.party, bob.party, linearId = linearId1)
+        val output2 = AgreementState(AgreementStatus.AGREED, alice.party, bob.party, "Some more grapes", Amount(10, Currency.getInstance("GBP")), alice.party, bob.party, linearId = linearId2)
+        val output3 = AgreementState(AgreementStatus.AGREED, alice.party, bob.party, "yet more grapes", Amount(10, Currency.getInstance("GBP")), alice.party, bob.party, linearId = linearId3)
 
         ledgerServices.ledger {
             transaction {
@@ -84,7 +89,10 @@ class AgreementContractTests {
                 input(AgreementContract.ID, input2)
                 input(AgreementContract.ID, input3)
                 command(alice.publicKey, AgreementContract.Commands.Agree())
-                failsWith("All inputs of type AgreementState must have the same status.")
+                output(AgreementContract.ID, output1)
+                output(AgreementContract.ID, output2)
+                output(AgreementContract.ID, output3)
+                failsWith("The status must be transitioning from Proposed to Agreed")
             }
         }
     }
@@ -137,7 +145,7 @@ class AgreementContractTests {
             transaction {
                 command(alice.publicKey, AgreementContract.Commands.Agree())
                 output(AgreementContract.ID, proposedState)
-                `fails with`("txPath must be allowed by PathConstraints for inputStatus null.")
+                `fails with`("Number of input states and output states must be the same")
             }
             transaction {
                 command(alice.publicKey, AgreementContract.Commands.Reject())
@@ -160,19 +168,19 @@ class AgreementContractTests {
             transaction {
                 input(AgreementContract.ID, proposedState)
                 command(alice.publicKey, AgreementContract.Commands.Agree())
-                `fails with`("txPath must be allowed by PathConstraints for inputStatus PROPOSED.")
+                `fails with`("Number of input states and output states must be the same")
             }
             transaction {
                 input(AgreementContract.ID, proposedState)
                 command(alice.publicKey, AgreementContract.Commands.Agree())
                 output(AgreementContract.ID, proposedState)
-                `fails with`("txPath must be allowed by PathConstraints for inputStatus PROPOSED.")
+                `fails with`("The status must be transitioning from Proposed to Agreed")
             }
             transaction {
                 input(AgreementContract.ID, proposedState)
                 command(alice.publicKey, AgreementContract.Commands.Agree())
                 output(AgreementContract.ID, rejectedState)
-                `fails with`("txPath must be allowed by PathConstraints for inputStatus PROPOSED.")
+                `fails with`("The status must be transitioning from Proposed to Agreed")
             }
             // Incorrect Commands
             transaction {
@@ -230,7 +238,7 @@ class AgreementContractTests {
                 input(AgreementContract.ID, rejectedState)
                 command(alice.publicKey, AgreementContract.Commands.Agree())
                 output(AgreementContract.ID, proposedState)
-                `fails with`("txPath must be allowed by PathConstraints for inputStatus REJECTED.")
+                `fails with`("The status must be transitioning from Proposed to Agreed")
             }
             transaction {
                 input(AgreementContract.ID, rejectedState)
@@ -278,7 +286,7 @@ class AgreementContractTests {
             transaction {
                 input(AgreementContract.ID, agreedState)
                 command(alice.publicKey, AgreementContract.Commands.Agree())
-                `fails with`("txPath must be allowed by PathConstraints for inputStatus AGREED.")
+                `fails with`("Number of input states and output states must be the same")
             }
         }
     }
@@ -414,7 +422,7 @@ class AgreementContractTests {
                 input(AgreementContract.ID, proposed2)
                 command(alice.publicKey, AgreementContract.Commands.Agree())
                 output(AgreementContract.ID, agreed)
-                failsWith("When the Command is Agree the LinearID must not change.")
+                failsWith("Each input state must have a corresponding output state (with same linear id)")
             }
         }
     }
