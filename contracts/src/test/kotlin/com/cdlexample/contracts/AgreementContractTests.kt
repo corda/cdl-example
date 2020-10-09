@@ -160,7 +160,7 @@ class AgreementContractTests {
             transaction {
                 command(alice.publicKey, AgreementContract.Commands.Complete())
                 output(AgreementContract.ID, proposedState)
-                `fails with`("txPath must be allowed by PathConstraints for inputStatus null.")
+                `fails with`("There must be at least 1 input state(s)")
             }
 
             // from Proposed state
@@ -187,7 +187,7 @@ class AgreementContractTests {
                 input(AgreementContract.ID, proposedState)
                 command(alice.publicKey, AgreementContract.Commands.Propose())
                 output(AgreementContract.ID, agreedState)
-                `fails with`("There must be at most 0 input state(s)")
+                `fails with`("There cannot be any input state(s)")
             }
             transaction {
                 input(AgreementContract.ID, proposedState)
@@ -199,7 +199,7 @@ class AgreementContractTests {
                 input(AgreementContract.ID, proposedState)
                 command(alice.publicKey, AgreementContract.Commands.Complete())
                 output(AgreementContract.ID, agreedState)
-                `fails with`("txPath must be allowed by PathConstraints for inputStatus PROPOSED.")
+                `fails with`("There cannot be any output state(s)")
             }
 
             // From Rejected Status
@@ -226,7 +226,7 @@ class AgreementContractTests {
                 input(AgreementContract.ID, rejectedState)
                 command(alice.publicKey, AgreementContract.Commands.Propose())
                 output(AgreementContract.ID, proposedState)
-                `fails with`("There must be at most 0 input state(s)")
+                `fails with`("There cannot be any input state(s)")
             }
             transaction {
                 input(AgreementContract.ID, rejectedState)
@@ -244,7 +244,7 @@ class AgreementContractTests {
                 input(AgreementContract.ID, rejectedState)
                 command(alice.publicKey, AgreementContract.Commands.Complete())
                 output(AgreementContract.ID, proposedState)
-                `fails with`("txPath must be allowed by PathConstraints for inputStatus REJECTED.")
+                `fails with`("There cannot be any output state(s)")
             }
 
             // From Agreed
@@ -253,25 +253,25 @@ class AgreementContractTests {
                 input(AgreementContract.ID, agreedState)
                 command(alice.publicKey, AgreementContract.Commands.Complete())
                 output(AgreementContract.ID, proposedState)
-                `fails with`("txPath must be allowed by PathConstraints for inputStatus AGREED.")
+                `fails with`("There cannot be any output state(s)")
             }
             transaction {
                 input(AgreementContract.ID, agreedState)
                 command(alice.publicKey, AgreementContract.Commands.Complete())
                 output(AgreementContract.ID, rejectedState)
-                `fails with`("txPath must be allowed by PathConstraints for inputStatus AGREED.")
+                `fails with`("There cannot be any output state(s)")
             }
             transaction {
                 input(AgreementContract.ID, agreedState)
                 command(alice.publicKey, AgreementContract.Commands.Complete())
                 output(AgreementContract.ID, agreedState)
-                `fails with`("txPath must be allowed by PathConstraints for inputStatus AGREED.")
+                `fails with`("There cannot be any output state(s)")
             }
             // Incorrect Commands
             transaction {
                 input(AgreementContract.ID, agreedState)
                 command(alice.publicKey, AgreementContract.Commands.Propose())
-                `fails with`("There must be at most 0 input state(s)")
+                `fails with`("There cannot be any input state(s)")
             }
             transaction {
                 input(AgreementContract.ID, agreedState)
