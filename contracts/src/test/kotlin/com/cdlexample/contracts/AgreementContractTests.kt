@@ -83,14 +83,14 @@ class AgreementContractTests {
                 input(AgreementContract.ID, input1)
                 input(AgreementContract.ID, input2)
                 input(AgreementContract.ID, input3)
-                command(alice.publicKey, AgreementContract.Commands.Propose())
+                command(alice.publicKey, AgreementContract.Commands.Agree())
                 failsWith("All inputs of type AgreementState must have the same status.")
             }
         }
     }
 
     @Test
-    fun `check all outputs of type AgreementState have the same Status`() {
+    fun `check all outputs in a tx representing a proposal must be in PROPOSED state`() {
 
         val linearId = UniqueIdentifier()
         val output1 = AgreementState(AgreementStatus.PROPOSED, alice.party, bob.party, "Some grapes", Amount(10, Currency.getInstance("GBP")), alice.party, bob.party, linearId = linearId)
@@ -103,7 +103,7 @@ class AgreementContractTests {
                 output(AgreementContract.ID, output2)
                 output(AgreementContract.ID, output3)
                 command(alice.publicKey, AgreementContract.Commands.Propose())
-                failsWith("All outputs of type AgreementState must have the same status.")
+                failsWith("The output state must be in status Proposed")
             }
         }
     }
@@ -126,12 +126,12 @@ class AgreementContractTests {
             transaction {
                 command(alice.publicKey, AgreementContract.Commands.Propose())
                 output(AgreementContract.ID, agreedState)
-                `fails with`("txPath must be allowed by PathConstraints for inputStatus null.")
+                `fails with`("The output state must be in status Proposed")
             }
             transaction {
                 command(alice.publicKey, AgreementContract.Commands.Propose())
                 output(AgreementContract.ID, rejectedState)
-                `fails with`("txPath must be allowed by PathConstraints for inputStatus null.")
+                `fails with`("The output state must be in status Proposed")
             }
             // Incorrect Commands
             transaction {
@@ -147,7 +147,7 @@ class AgreementContractTests {
             transaction {
                 command(alice.publicKey, AgreementContract.Commands.Repropose())
                 output(AgreementContract.ID, proposedState)
-                `fails with`("txPath must be allowed by PathConstraints for inputStatus null.")
+                `fails with`("Number of input states and output states must be the same")
             }
             transaction {
                 command(alice.publicKey, AgreementContract.Commands.Complete())
@@ -179,13 +179,13 @@ class AgreementContractTests {
                 input(AgreementContract.ID, proposedState)
                 command(alice.publicKey, AgreementContract.Commands.Propose())
                 output(AgreementContract.ID, agreedState)
-                `fails with`("txPath must be allowed by PathConstraints for inputStatus PROPOSED.")
+                `fails with`("There must be at most 0 input state(s)")
             }
             transaction {
                 input(AgreementContract.ID, proposedState)
                 command(alice.publicKey, AgreementContract.Commands.Repropose())
                 output(AgreementContract.ID, agreedState)
-                `fails with`("txPath must be allowed by PathConstraints for inputStatus PROPOSED.")
+                `fails with`("The status must be transitioning from Rejected to Proposed")
             }
             transaction {
                 input(AgreementContract.ID, proposedState)
@@ -199,26 +199,26 @@ class AgreementContractTests {
             transaction {
                 input(AgreementContract.ID, rejectedState)
                 command(alice.publicKey, AgreementContract.Commands.Repropose())
-                `fails with`("txPath must be allowed by PathConstraints for inputStatus REJECTED.")
+                `fails with`("Number of input states and output states must be the same")
             }
             transaction {
                 input(AgreementContract.ID, rejectedState)
                 command(alice.publicKey, AgreementContract.Commands.Repropose())
                 output(AgreementContract.ID, rejectedState)
-                `fails with`("txPath must be allowed by PathConstraints for inputStatus REJECTED.")
+                `fails with`("The status must be transitioning from Rejected to Proposed")
             }
             transaction {
                 input(AgreementContract.ID, rejectedState)
                 command(alice.publicKey, AgreementContract.Commands.Repropose())
                 output(AgreementContract.ID, agreedState)
-                `fails with`("txPath must be allowed by PathConstraints for inputStatus REJECTED.")
+                `fails with`("The status must be transitioning from Rejected to Proposed")
             }
             // Incorrect Commands
             transaction {
                 input(AgreementContract.ID, rejectedState)
                 command(alice.publicKey, AgreementContract.Commands.Propose())
                 output(AgreementContract.ID, proposedState)
-                `fails with`("txPath must be allowed by PathConstraints for inputStatus REJECTED.")
+                `fails with`("There must be at most 0 input state(s)")
             }
             transaction {
                 input(AgreementContract.ID, rejectedState)
@@ -263,7 +263,7 @@ class AgreementContractTests {
             transaction {
                 input(AgreementContract.ID, agreedState)
                 command(alice.publicKey, AgreementContract.Commands.Propose())
-                `fails with`("txPath must be allowed by PathConstraints for inputStatus AGREED.")
+                `fails with`("There must be at most 0 input state(s)")
             }
             transaction {
                 input(AgreementContract.ID, agreedState)
@@ -273,7 +273,7 @@ class AgreementContractTests {
             transaction {
                 input(AgreementContract.ID, agreedState)
                 command(alice.publicKey, AgreementContract.Commands.Repropose())
-                `fails with`("txPath must be allowed by PathConstraints for inputStatus AGREED.")
+                `fails with`("Number of input states and output states must be the same")
             }
             transaction {
                 input(AgreementContract.ID, agreedState)
@@ -408,7 +408,7 @@ class AgreementContractTests {
                 input(AgreementContract.ID, rejected)
                 command(bob.publicKey, AgreementContract.Commands.Repropose())
                 output(AgreementContract.ID, proposed2)
-                failsWith("When the Command is Repropose the LinearID must not change.")
+                failsWith("Each input state must have a corresponding output state (with same linear id)")
             }
             transaction {
                 input(AgreementContract.ID, proposed2)

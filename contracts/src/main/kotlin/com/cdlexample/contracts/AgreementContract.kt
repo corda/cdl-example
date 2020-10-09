@@ -2,6 +2,8 @@ package com.cdlexample.contracts
 
 import com.cdlexample.states.AgreementState
 import com.cdlexample.states.AgreementStatus.*
+import net.corda.contractsdk.StandardContract
+import net.corda.contractsdk.annotations.*
 import net.corda.core.contracts.*
 import net.corda.core.identity.Party
 import net.corda.core.transactions.LedgerTransaction
@@ -9,7 +11,7 @@ import net.corda.core.transactions.LedgerTransaction
 // ************
 // * Contract *
 // ************
-class AgreementContract : Contract {
+class AgreementContract : StandardContract(Commands::class.java), Contract {
     companion object {
         // Used to identify our contract when building a transaction.
         const val ID = "com.cdlexample.contracts.AgreementContract"
@@ -17,7 +19,12 @@ class AgreementContract : Contract {
 
     // Used to indicate the transaction's intent.
     interface Commands : CommandData {
+        @NumberOfInputStates(0)
+        @NumberOfOutputStatesAtLeast(1)
+        @AllowedStatusOnOutput("Proposed")
         class Propose : Commands
+
+        @AllowedStatusChangeInCoupledLinearStates("Rejected", "Proposed")
         class Repropose: Commands
         class Reject: Commands
         class Agree: Commands
@@ -26,7 +33,7 @@ class AgreementContract : Contract {
 
     // A transaction is valid if the verify() function of the contract of all the transaction's input and output states
     // does not throw an exception.
-    override fun verify(tx: LedgerTransaction) {
+    override fun verifyFurther(tx: LedgerTransaction) {
 
         // todo: be clear which sub functions need to pass the class
 
