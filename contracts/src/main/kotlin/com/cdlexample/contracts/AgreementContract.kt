@@ -32,6 +32,7 @@ class AgreementContract : StandardContract(Commands::class.java), Contract {
         class Reject: Commands
 
         @AllowedStatusChangeInCoupledLinearStates("Proposed", "Agreed")
+        @LimitedChangeInCoupledLinearStates("status")
         class Agree: Commands
 
         @NumberOfInputStatesAtLeast(1)

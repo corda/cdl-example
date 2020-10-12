@@ -340,11 +340,11 @@ class AgreementContractTests {
                 alice.party, bob.party, "Some grapes", Amount(10, Currency.getInstance("GBP")), alice.party, bob.party, "I don't like grapes", alice.party, linearId = linearId)
 
         val rejected1 = AgreementState(AgreementStatus.REJECTED,
-                alice.party, bob.party, "Some more grapes", Amount(10, Currency.getInstance("GBP")), alice.party, bob.party, "I don't like grapes", linearId = linearId)
+                alice.party, bob.party, "Some grapes", Amount(10, Currency.getInstance("GBP")), alice.party, bob.party, "I don't like grapes", linearId = linearId)
         val rejected2 = AgreementState(AgreementStatus.REJECTED,
-                alice.party, bob.party, "Some more grapes", Amount(10, Currency.getInstance("GBP")), alice.party, bob.party, rejectedBy = alice.party, linearId = linearId)
+                alice.party, bob.party, "Some grapes", Amount(10, Currency.getInstance("GBP")), alice.party, bob.party, rejectedBy = alice.party, linearId = linearId)
         val rejected3 = AgreementState(AgreementStatus.REJECTED,
-                alice.party, bob.party, "Some more grapes", Amount(10, Currency.getInstance("GBP")), alice.party, bob.party, linearId = linearId)
+                alice.party, bob.party, "Some grapes", Amount(10, Currency.getInstance("GBP")), alice.party, bob.party, linearId = linearId)
 
 
         ledgerServices.ledger {
@@ -364,7 +364,6 @@ class AgreementContractTests {
                 output(AgreementContract.ID, proposed4)
                 `fails with`("When status is Proposed rejectionReason must be null.")
             }
-
             // Rejected
             transaction {
                 input(AgreementContract.ID, proposed1)
@@ -579,25 +578,25 @@ class AgreementContractTests {
                 input(AgreementContract.ID, proposed2)
                 command(alice.publicKey, AgreementContract.Commands.Agree())
                 output(AgreementContract.ID, agreed1)
-                failsWith("When the command is Agree no properties can change except status.")
+                failsWith("Property 'goods' is not allowed to change between input and output")
             }
             transaction {
                 input(AgreementContract.ID, proposed2)
                 command(alice.publicKey, AgreementContract.Commands.Agree())
                 output(AgreementContract.ID, agreed2)
-                failsWith("When the command is Agree no properties can change except status.")
+                failsWith("Property 'price' is not allowed to change between input and output")
             }
             transaction {
                 input(AgreementContract.ID, proposed2)
                 command(alice.publicKey, AgreementContract.Commands.Agree())
                 output(AgreementContract.ID, agreed3)
-                failsWith("When the command is Agree no properties can change except status.")
+                failsWith("Property 'price' is not allowed to change between input and output")
             }
             transaction {
                 input(AgreementContract.ID, proposed2)
                 command(alice.publicKey, AgreementContract.Commands.Agree())
                 output(AgreementContract.ID, agreed4)
-                failsWith("When the command is Agree no properties can change except status.")
+                failsWith("Property 'consenter' is not allowed to change between input and output")
             }
         }
     }
