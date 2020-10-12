@@ -352,17 +352,17 @@ class AgreementContractTests {
             transaction {
                 command(alice.publicKey, AgreementContract.Commands.Propose())
                 output(AgreementContract.ID, proposed2)
-                `fails with`("When status is Proposed rejectionReason must be null.")
+                `fails with`("Properties [rejectedBy, rejectionReason] must be null on the output but these are not: [rejectionReason].")
             }
             transaction {
                 command(alice.publicKey, AgreementContract.Commands.Propose())
                 output(AgreementContract.ID, proposed3)
-                `fails with`("When status is Rejected rejectedBy must be null.")
+                `fails with`("Properties [rejectedBy, rejectionReason] must be null on the output but these are not: [rejectedBy].")
             }
             transaction {
                 command(alice.publicKey, AgreementContract.Commands.Propose())
                 output(AgreementContract.ID, proposed4)
-                `fails with`("When status is Proposed rejectionReason must be null.")
+                `fails with`("Properties [rejectedBy, rejectionReason] must be null on the output but these are not: [rejectedBy, rejectionReason].")
             }
             // Rejected
             transaction {
