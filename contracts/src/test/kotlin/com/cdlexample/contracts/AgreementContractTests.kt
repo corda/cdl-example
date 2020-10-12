@@ -450,12 +450,12 @@ class AgreementContractTests {
             transaction {
                 command(bob.publicKey, AgreementContract.Commands.Propose())
                 output(AgreementContract.ID, proposed1)
-                failsWith("When the Command is Propose the output.proposer must sign.")
+                failsWith("The Proposer from the output must sign the transaction.")
             }
             transaction {
                 command(charlie.publicKey, AgreementContract.Commands.Propose())
                 output(AgreementContract.ID, proposed1)
-                failsWith("When the Command is Propose the output.proposer must sign.")
+                failsWith("The Proposer from the output must sign the transaction.")
             }
             transaction {
                 command(listOf(alice.publicKey, charlie.publicKey), AgreementContract.Commands.Propose())

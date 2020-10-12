@@ -7,6 +7,7 @@ import net.corda.contractsdk.verifiers.StandardState
 import net.corda.core.contracts.*
 import net.corda.core.identity.AbstractParty
 import net.corda.core.identity.Party
+import java.lang.RuntimeException
 import java.util.*
 
 // *********
@@ -25,8 +26,13 @@ data class AgreementState(override val status: AgreementStatus,
                           override val participants: List<AbstractParty> = listOf(buyer, seller),
                           override val linearId: UniqueIdentifier = UniqueIdentifier()) : LinearState, StatusState, StandardState {
 
-    override fun getParty(role: String): Party {
-        TODO("Not yet implemented")
+    override fun getParty(role: String) = when (role.toUpperCase()) {
+        "BUYER" -> buyer
+        "SELLER" -> seller
+        "PROPOSER" -> proposer
+        "CONSENTER" -> consenter
+        "REJECTOR" -> rejectedBy ?: throw RuntimeException("The role '$role' has undefined value in this state")
+        else -> throw RuntimeException("The role '$role' is unknown in the AgreementState")
     }
 
     override fun isInStatus(status: String) = AgreementStatus.valueOf(status.toUpperCase()) == this.status

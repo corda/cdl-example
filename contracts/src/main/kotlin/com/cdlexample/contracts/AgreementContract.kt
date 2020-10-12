@@ -22,6 +22,7 @@ class AgreementContract : StandardContract(Commands::class.java), Contract {
         @NumberOfInputStates(0)
         @NumberOfOutputStatesAtLeast(1)
         @AllowedStatusOnOutput("Proposed")
+        @RequiredSignersFromOutput("Proposer")
         class Propose : Commands
 
         @AllowedStatusChangeInCoupledLinearStates("Rejected", "Proposed")
@@ -50,8 +51,8 @@ class AgreementContract : StandardContract(Commands::class.java), Contract {
         //verifyPathConstraints(tx, AgreementState::class.java)
         verifyUniversalConstraints(tx)
         verifyStatusConstraints(tx)
-        verifyLinearIDConstraints(tx)
-        verifySigningConstraints(tx)
+        //verifyLinearIDConstraints(tx)
+        //verifySigningConstraints(tx)
         //verifyCommandConstraints(tx)
     }
 
