@@ -14,7 +14,7 @@ import java.util.*
 // * State *
 // *********
 @BelongsToContract(AgreementContract::class)
-data class AgreementState(override val status: AgreementStatus,
+data class AgreementState(val status: AgreementStatus,
                           val buyer: Party,
                           val seller: Party,
                           val goods: String,
@@ -24,7 +24,7 @@ data class AgreementState(override val status: AgreementStatus,
                           val rejectionReason: String? = null,
                           val rejectedBy: Party?= null,
                           override val participants: List<AbstractParty> = listOf(buyer, seller),
-                          override val linearId: UniqueIdentifier = UniqueIdentifier()) : LinearState, StatusState, StandardState {
+                          override val linearId: UniqueIdentifier = UniqueIdentifier()) : LinearState, StandardState {
 
     override fun getParty(role: String) = when (role.toUpperCase()) {
         "BUYER" -> buyer
