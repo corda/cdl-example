@@ -26,19 +26,23 @@ class AgreementContract : StandardContract(Commands::class.java), Contract {
         class Propose : Commands
 
         @AllowedStatusChangeInCoupledLinearStates("Rejected", "Proposed")
+        @RequiredSignersFromOutput("Proposer")
         class Repropose: Commands
 
         @AllowedStatusChangeInCoupledLinearStates("Proposed", "Rejected")
         @LimitedChangeInCoupledLinearStates("status", "rejectionReason", "rejectedBy")
+        @RequiredSignersFromOutput("Rejector")
         class Reject: Commands
 
         @AllowedStatusChangeInCoupledLinearStates("Proposed", "Agreed")
         @LimitedChangeInCoupledLinearStates("status")
+        @RequiredSignersFromInput("Consenter")
         class Agree: Commands
 
         @NumberOfInputStatesAtLeast(1)
         @NumberOfOutputStates(0)
         @AllowedStatusOnInput("Agreed")
+        @RequiredSignersFromInput("Seller")
         class Complete: Commands
     }
 

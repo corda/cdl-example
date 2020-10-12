@@ -468,13 +468,13 @@ class AgreementContractTests {
                 input(AgreementContract.ID, proposed1)
                 command(alice.publicKey, AgreementContract.Commands.Reject())
                 output(AgreementContract.ID, rejected)
-                failsWith("When the Command is Reject the output.rejectedBy must sign.")
+                failsWith("The Rejector from the output must sign the transaction.")
             }
             transaction {
                 input(AgreementContract.ID, proposed1)
                 command(charlie.publicKey, AgreementContract.Commands.Reject())
                 output(AgreementContract.ID, rejected)
-                failsWith("When the Command is Reject the output.rejectedBy must sign.")
+                failsWith("The Rejector from the output must sign the transaction.")
             }
             transaction {
                 input(AgreementContract.ID, proposed1)
@@ -488,13 +488,13 @@ class AgreementContractTests {
                 input(AgreementContract.ID, rejected)
                 command(alice.publicKey, AgreementContract.Commands.Repropose())
                 output(AgreementContract.ID, proposed2)
-                failsWith("When the Command is Repropose the output.proposer must sign.")
+                failsWith("The Proposer from the output must sign the transaction.")
             }
             transaction {
                 input(AgreementContract.ID, rejected)
                 command(charlie.publicKey, AgreementContract.Commands.Repropose())
                 output(AgreementContract.ID, proposed2)
-                failsWith("When the Command is Repropose the output.proposer must sign.")
+                failsWith("The Proposer from the output must sign the transaction.")
             }
             transaction {
                 input(AgreementContract.ID, rejected)
@@ -508,13 +508,13 @@ class AgreementContractTests {
                 input(AgreementContract.ID, proposed2)
                 command(bob.publicKey, AgreementContract.Commands.Agree())
                 output(AgreementContract.ID, agreed)
-                failsWith("When the Command is Agree the input.consenter must sign.")
+                failsWith("The Consenter from the input must sign the transaction.")
             }
             transaction {
                 input(AgreementContract.ID, proposed2)
                 command(charlie.publicKey, AgreementContract.Commands.Agree())
                 output(AgreementContract.ID, agreed)
-                failsWith("When the Command is Agree the input.consenter must sign.")
+                failsWith("The Consenter from the input must sign the transaction.")
             }
             transaction {
                 input(AgreementContract.ID, proposed2)
@@ -527,12 +527,12 @@ class AgreementContractTests {
             transaction {
                 input(AgreementContract.ID, agreed)
                 command(alice.publicKey, AgreementContract.Commands.Complete())
-                failsWith("When the command is Complete the input.seller must sign.")
+                failsWith("The Seller from the input must sign the transaction.")
             }
             transaction {
                 input(AgreementContract.ID, agreed)
                 command(charlie.publicKey, AgreementContract.Commands.Complete())
-                failsWith("When the command is Complete the input.seller must sign.")
+                failsWith("The Seller from the input must sign the transaction.")
             }
             transaction {
                 input(AgreementContract.ID, agreed)
