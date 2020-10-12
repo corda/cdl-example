@@ -309,7 +309,7 @@ class AgreementContractTests {
                 `fails with`("The buyer and seller must be different Parties.")
             }
             transaction {
-                command(alice.publicKey, AgreementContract.Commands.Propose())
+                command(charlie.publicKey, AgreementContract.Commands.Propose())
                 output(AgreementContract.ID, state2)
                 `fails with`("The proposer must be either the buyer or the seller.")
             }
@@ -369,19 +369,19 @@ class AgreementContractTests {
                 input(AgreementContract.ID, proposed1)
                 command(alice.publicKey, AgreementContract.Commands.Reject())
                 output(AgreementContract.ID, rejected1)
-                `fails with`("When status is Rejected rejectedBy must not be null.")
+                `fails with`("Failed requirement: Properties [rejectedBy, rejectionReason] cannot be null on the output but these are null: [rejectedBy].")
             }
             transaction {
                 input(AgreementContract.ID, proposed1)
                 command(alice.publicKey, AgreementContract.Commands.Reject())
                 output(AgreementContract.ID, rejected2)
-                `fails with`("When status is Rejected rejectionReason must not be null.")
+                `fails with`("Properties [rejectedBy, rejectionReason] cannot be null on the output but these are null: [rejectionReason].")
             }
             transaction {
                 input(AgreementContract.ID, proposed1)
                 command(alice.publicKey, AgreementContract.Commands.Reject())
                 output(AgreementContract.ID, rejected3)
-                `fails with`("When status is Rejected rejectionReason must not be null.")
+                `fails with`("Properties [rejectedBy, rejectionReason] cannot be null on the output but these are null: [rejectedBy, rejectionReason].")
             }
         }
     }

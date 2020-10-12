@@ -31,6 +31,7 @@ class AgreementContract : StandardContract(Commands::class.java), Contract {
 
         @AllowedStatusChangeInCoupledLinearStates("Proposed", "Rejected")
         @LimitedChangeInCoupledLinearStates("status", "rejectionReason", "rejectedBy")
+        @PropertiesOnOutputCannotBeNull("rejectedBy", "rejectionReason")
         @RequiredSignersFromOutput("Rejector")
         class Reject: Commands
 
