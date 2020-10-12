@@ -1,12 +1,11 @@
 package com.cdlexample.states
 
 import com.cdlexample.contracts.AgreementContract
-import com.cdlexample.contracts.Status
-import com.cdlexample.contracts.StatusState
 import net.corda.contractsdk.verifiers.StandardState
 import net.corda.core.contracts.*
 import net.corda.core.identity.AbstractParty
 import net.corda.core.identity.Party
+import net.corda.core.serialization.CordaSerializable
 import java.lang.RuntimeException
 import java.util.*
 
@@ -38,7 +37,8 @@ data class AgreementState(val status: AgreementStatus,
     override fun isInStatus(status: String) = AgreementStatus.valueOf(status.toUpperCase()) == this.status
 }
 
-enum class AgreementStatus: Status {
+@CordaSerializable
+enum class AgreementStatus {
     PROPOSED,
     REJECTED,
     AGREED
