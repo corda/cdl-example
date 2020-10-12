@@ -11,6 +11,14 @@ import net.corda.core.transactions.LedgerTransaction
 // ************
 // * Contract *
 // ************
+@MustBeDistinctPartiesWithinEachOutputStateList(
+    MustBeDistinctPartiesWithinEachOutputState("Buyer","Seller"),
+    MustBeDistinctPartiesWithinEachOutputState("Consenter","Proposer")
+)
+@SamePartyMustAssumeAtLeastOneOtherRoleWithinEachOutputStateList(
+    SamePartyMustAssumeAtLeastOneOtherRoleWithinEachOutputState("Proposer", "Buyer", "Seller"),
+    SamePartyMustAssumeAtLeastOneOtherRoleWithinEachOutputState("Consenter", "Buyer", "Seller")
+)
 class AgreementContract : StandardContract(Commands::class.java), Contract {
     companion object {
         // Used to identify our contract when building a transaction.
@@ -55,7 +63,7 @@ class AgreementContract : StandardContract(Commands::class.java), Contract {
         // todo: be clear which sub functions need to pass the class
 
         //verifyPathConstraints(tx, AgreementState::class.java)
-        verifyUniversalConstraints(tx)
+        //verifyUniversalConstraints(tx)
         //verifyStatusConstraints(tx)
         //verifyLinearIDConstraints(tx)
         //verifySigningConstraints(tx)
