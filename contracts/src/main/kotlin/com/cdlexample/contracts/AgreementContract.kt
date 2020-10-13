@@ -1,12 +1,8 @@
 package com.cdlexample.contracts
 
-import com.cdlexample.states.AgreementState
-import com.cdlexample.states.AgreementStatus.*
 import net.corda.contractsdk.StandardContract
 import net.corda.contractsdk.annotations.*
 import net.corda.core.contracts.*
-import net.corda.core.identity.Party
-import net.corda.core.transactions.LedgerTransaction
 
 // ************
 // * Contract *
