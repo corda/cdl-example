@@ -1,5 +1,6 @@
 package com.cdlexample.contracts
 
+import com.cdlexample.states.AgreementState
 import net.corda.contractsdk.StandardContract
 import net.corda.contractsdk.annotations.*
 import net.corda.core.contracts.*
@@ -23,7 +24,7 @@ class AgreementContract : StandardContract(Commands::class.java), Contract {
 
     // Used to indicate the transaction's intent.
     interface Commands : CommandData {
-        @NumberOfInputStates(0)
+        @NumberOfInputStates(0, targetClasses = [AgreementState::class])
         @NumberOfOutputStatesAtLeast(1)
         @AllowedStatusOnOutput("Proposed")
         @RequiredSignersFromOutput("Proposer")
