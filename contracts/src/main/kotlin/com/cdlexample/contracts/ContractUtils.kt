@@ -13,7 +13,7 @@ import net.corda.core.transactions.LedgerTransaction
 /**
  * The StatusState interface should be implemented for all [ContractState]s that require a status field.
  *
- * [status] is nullable so that when there is no input or output state in a transaction, it can
+ * [status] is nullable so that when there is no input or output state in a transaction, the status can be represented as [null]
  *
  */
 interface StatusState: ContractState {
