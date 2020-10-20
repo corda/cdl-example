@@ -257,7 +257,7 @@ class AdditionalStatesConstraint(val type: AdditionalStatesType ,
 
 where: 
 - `type` is INPUT, OUTPUT or REFERENCE.
-- `clazz` is the required type of the additional states.
+- `statesClass` is the required type of the additional states.
 - `requiredNumberOfStates` defines how many AdditionalStates of this type are allowed using a `MultiplicityConstraint`.
 
 `MultiplicityConstraint` are defined as follows:
