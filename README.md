@@ -153,7 +153,7 @@ interface Status
 Statuses are defined in the StatusState as an enum class implementing the Status interface. 
  
 ```kotlin
-data class AgreementState(override val status: AgreementStatus,
+data class AgreementState(override val status: AgreementStatus?,
                            //.../// 
                           override val participants: List<AbstractParty> = listOf(buyer, seller),
                           override val linearId: UniqueIdentifier = UniqueIdentifier()) : LinearState, StatusState
