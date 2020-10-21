@@ -360,7 +360,7 @@ The CorDapp is based of the Cordapp Template - Kotlin, so should behave in the n
 
 Note, most of the testing of the smart contract is done using Contract Unit tests, the rest of the CorDapp is mostly not implemented yet:
 - Only two flows are implemented (Propose and Reject) togther with basic flow tests for each, just to test that serialisation of the Classes works.
-- The webserver is not implemented
-- The RPC client is not implemented
+- The webserver is not implemented.
+- The RPC client is not implemented.
 
 
