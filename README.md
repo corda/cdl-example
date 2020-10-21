@@ -9,6 +9,11 @@ This CorDapp provides an example implementation of a CDL design for two Parties 
 The intention is to take a mid level complexity CDL design and show how it can be methodically translated into the States and Contract required to implement the design.
 
 
+# Important Caveat
+
+This cdl-example CorDapp is not an R3 product. It is only an illustration of one way a CDL Smart Contract view could be implemented. It has not gone through R3's normal rigorous Product and QA procedures and should not be relied on as production grade code.
+
+
 # CDL
 
 ## CDL Smart Contract view
