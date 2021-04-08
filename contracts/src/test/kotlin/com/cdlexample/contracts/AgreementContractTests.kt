@@ -306,22 +306,22 @@ class AgreementContractTests {
             transaction {
                 command(alice.publicKey, AgreementContract.Commands.Propose())
                 output(AgreementContract.ID, state1)
-                `fails with`("Each of these roles must be a different party, [Buyer, Seller]")
+                `fails with`("Each of these roles must be a different party on output, [Buyer, Seller]")
             }
             transaction {
                 command(charlie.publicKey, AgreementContract.Commands.Propose())
                 output(AgreementContract.ID, state2)
-                 `fails with`("The Proposer must also be one of [Buyer, Seller] roles.")
+                 `fails with`("The Proposer must also be one of [Buyer, Seller] roles on output.")
             }
             transaction {
                 command(alice.publicKey, AgreementContract.Commands.Propose())
                 output(AgreementContract.ID, state3)
-                `fails with`("The Consenter must also be one of [Buyer, Seller] roles.")
+                `fails with`("The Consenter must also be one of [Buyer, Seller] roles on output.")
             }
             transaction {
                 command(alice.publicKey, AgreementContract.Commands.Propose())
                 output(AgreementContract.ID, state4)
-                `fails with`("Each of these roles must be a different party, [Consenter, Proposer].")
+                `fails with`("Each of these roles must be a different party on output, [Consenter, Proposer].")
             }
         }
     }

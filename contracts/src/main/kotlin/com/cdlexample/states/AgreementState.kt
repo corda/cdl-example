@@ -1,7 +1,7 @@
 package com.cdlexample.states
 
 import com.cdlexample.contracts.AgreementContract
-import net.corda.contractsdk.verifiers.StandardState
+import com.r3.corda.lib.contracts.contractsdk.verifiers.StandardState
 import net.corda.core.contracts.*
 import net.corda.core.identity.AbstractParty
 import net.corda.core.identity.Party

@@ -1,20 +1,20 @@
 package com.cdlexample.contracts
 
 import com.cdlexample.states.AgreementState
-import net.corda.contractsdk.StandardContract
-import net.corda.contractsdk.annotations.*
+import com.r3.corda.lib.contracts.contractsdk.StandardContract
+import com.r3.corda.lib.contracts.contractsdk.annotations.*
 import net.corda.core.contracts.*
 
 // ************
 // * Contract *
 // ************
-@MustBeDistinctPartiesWithinEachOutputStateList(
-    MustBeDistinctPartiesWithinEachOutputState("Buyer","Seller"),
-    MustBeDistinctPartiesWithinEachOutputState("Consenter","Proposer")
+@RequireDistinctPartiesWithinEachOutputStateList(
+    RequireDistinctPartiesWithinEachOutputState("Buyer","Seller"),
+    RequireDistinctPartiesWithinEachOutputState("Consenter","Proposer")
 )
-@SamePartyMustAssumeAtLeastOneOtherRoleWithinEachOutputStateList(
-    SamePartyMustAssumeAtLeastOneOtherRoleWithinEachOutputState("Proposer", "Buyer", "Seller"),
-    SamePartyMustAssumeAtLeastOneOtherRoleWithinEachOutputState("Consenter", "Buyer", "Seller")
+@RequirePartyToAssumeAtLeastOneOtherRoleWithinEachOutputStateList(
+    RequirePartyToAssumeAtLeastOneOtherRoleWithinEachOutputState("Proposer", "Buyer", "Seller"),
+    RequirePartyToAssumeAtLeastOneOtherRoleWithinEachOutputState("Consenter", "Buyer", "Seller")
 )
 class AgreementContract : StandardContract(Commands::class.java), Contract {
     companion object {
@@ -24,32 +24,32 @@ class AgreementContract : StandardContract(Commands::class.java), Contract {
 
     // Used to indicate the transaction's intent.
     interface Commands : CommandData {
-        @NumberOfInputStates(0, targetClasses = [AgreementState::class])
-        @NumberOfOutputStatesAtLeast(1)
-        @AllowedStatusOnOutput("Proposed")
-        @RequiredSignersFromOutput("Proposer")
-        @PropertiesOnOutputMustNotBeSet("rejectionReason", "rejectedBy")
+        @RequireNumberOfStatesOnInput(0, targetClasses = [AgreementState::class])
+        @RequireNumberOfStatesOnOutputAtLeast(1)
+        @PermitStatusOnOutput("Proposed")
+        @RequireSignersFromEachOutputState("Proposer")
+        @RequirePropertiesNotSetOnOutput("rejectionReason", "rejectedBy")
         class Propose : Commands
 
-        @AllowedStatusChangeInCoupledLinearStates("Rejected", "Proposed")
-        @RequiredSignersFromOutput("Proposer")
+        @RequireStatusChangeInCoupledLinearStates("Rejected", "Proposed")
+        @RequireSignersFromEachOutputState("Proposer")
         class Repropose: Commands
 
-        @AllowedStatusChangeInCoupledLinearStates("Proposed", "Rejected")
-        @LimitedChangeInCoupledLinearStates("status", "rejectionReason", "rejectedBy")
-        @PropertiesOnOutputMustBeSet("rejectedBy", "rejectionReason")
-        @RequiredSignersFromOutput("Rejector")
+        @RequireStatusChangeInCoupledLinearStates("Proposed", "Rejected")
+        @ForbidChangeInCoupledLinearStatesExcept("status", "rejectionReason", "rejectedBy")
+        @RequirePropertiesSetOnOutput("rejectedBy", "rejectionReason")
+        @RequireSignersFromEachOutputState("Rejector")
         class Reject: Commands
 
-        @AllowedStatusChangeInCoupledLinearStates("Proposed", "Agreed")
-        @LimitedChangeInCoupledLinearStates("status")
-        @RequiredSignersFromInput("Consenter")
+        @RequireStatusChangeInCoupledLinearStates("Proposed", "Agreed")
+        @ForbidChangeInCoupledLinearStatesExcept("status")
+        @RequireSignersFromEachInputState("Consenter")
         class Agree: Commands
 
-        @NumberOfInputStatesAtLeast(1)
-        @NumberOfOutputStates(0)
-        @AllowedStatusOnInput("Agreed")
-        @RequiredSignersFromInput("Seller")
+        @RequireNumberOfStatesOnInputAtLeast(1)
+        @RequireNumberOfStatesOnOutput(0)
+        @PermitStatusOnInput("Agreed")
+        @RequireSignersFromEachInputState("Seller")
         class Complete: Commands
     }
 
