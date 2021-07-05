@@ -1,8 +1,10 @@
-apply plugin: 'net.corda.plugins.cordapp'
+plugins {
+    id 'net.corda.plugins.cordapp-cpk'
+    id 'org.jetbrains.kotlin.jvm'
+}
 
 cordapp {
-    targetPlatformVersion corda_platform_version
-    minimumPlatformVersion corda_platform_version
+    targetPlatformVersion = cordaPlatformVersion.toInteger()
     contract {
         name "Template Contracts"
         vendor "Corda Open Source"
@@ -12,8 +14,7 @@ cordapp {
 }
 
 dependencies {
-    compile "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin_version"
+    implementation "net.corda.kotlin:kotlin-stdlib-jdk8-osgi:$kotlinVersion"
     // Corda dependencies.
-    cordaCompile "$corda_core_release_group:corda-core:$corda_core_release_version"
-    testCompile "$corda_release_group:corda-node-driver:$corda_release_version"
+    cordaProvided "$cordaReleaseGroup:corda-application:$cordaReleaseVersion"
 }
