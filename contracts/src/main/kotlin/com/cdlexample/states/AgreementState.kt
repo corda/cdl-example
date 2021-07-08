@@ -3,9 +3,12 @@ package com.cdlexample.states
 import com.cdlexample.contracts.AgreementContract
 import com.cdlexample.contracts.Status
 import com.cdlexample.contracts.StatusState
-import net.corda.core.contracts.*
-import net.corda.core.identity.AbstractParty
-import net.corda.core.identity.Party
+import net.corda.v5.application.identity.AbstractParty
+import net.corda.v5.application.identity.Party
+import net.corda.v5.ledger.UniqueIdentifier
+import net.corda.v5.ledger.contracts.Amount
+import net.corda.v5.ledger.contracts.BelongsToContract
+import net.corda.v5.ledger.contracts.LinearState
 import java.util.*
 
 // *********

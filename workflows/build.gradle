@@ -31,11 +31,31 @@ configurations {
 
 dependencies {
     implementation "net.corda.kotlin:kotlin-stdlib-jdk8-osgi:$kotlinVersion"
+    testImplementation "net.corda:corda-flow-test-utils:$cordaReleaseVersion"
     testImplementation "org.jetbrains.kotlin:kotlin-test:$kotlinVersion"
-    testImplementation "junit:junit:$junitVersion"
+    //testImplementation "junit:junit:$junitVersion"
+    testImplementation "org.junit.jupiter:junit-jupiter:$junitVersion"
+    testImplementation "org.assertj:assertj-core:$assertJVersion"
+    testImplementation "io.mockk:mockk:$mockkVersion"
+
+    testImplementation "org.mockito:mockito-core:3.+"
+    testImplementation "org.mockito:mockito-inline:3.+"
+    //testImplementation "org.mockito:mockito-core:2.28.+"
+    testImplementation("com.nhaarman:mockito-kotlin:1.6.0") {
+        exclude group:"mockito-core"
+    }
+
+    integrationTestImplementation "net.corda:corda-dev-network-lib:$cordaReleaseVersion"
+    integrationTestImplementation "net.corda:corda-client-extensions-rpc:$cordaReleaseVersion"
+    integrationTestImplementation "org.junit.jupiter:junit-jupiter:$junitVersion"
+    integrationTestImplementation "org.assertj:assertj-core:$assertJVersion"
+
+    testRuntimeOnly "org.junit.jupiter:junit-jupiter-engine:$junitVersion"
 
     // Corda dependencies.
     cordaProvided "$cordaReleaseGroup:corda-application:$cordaReleaseVersion"
+    cordaProvided "$cordaReleaseGroup:corda-flows:$cordaReleaseVersion"
+    cordaProvided "$cordaReleaseGroup:corda-crypto-api:$cordaReleaseVersion"
 
     // CorDapp dependencies.
     cordapp project(":contracts")
@@ -44,4 +64,7 @@ dependencies {
 task integrationTest(type: Test, dependsOn: []) {
     testClassesDirs = sourceSets.integrationTest.output.classesDirs
     classpath = sourceSets.integrationTest.runtimeClasspath
+}
+tasks.withType(Test).configureEach {
+    useJUnitPlatform()
 }

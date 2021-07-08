@@ -3,8 +3,8 @@ pluginManagement {
         maven {
             url 'https://software.r3.com/artifactory/corda-os-maven'
             credentials {
-                username = cordaArtifactoryUsername
-                password = cordaArtifactoryPassword
+                username = System.getenv('CORDA_ARTIFACTORY_USERNAME')
+                password = System.getenv('CORDA_ARTIFACTORY_PASSWORD')
             }
         }
         maven {
@@ -30,8 +30,8 @@ dependencyResolutionManagement {
         maven {
             url "$artifactoryContextUrl/corda-os-maven"
             credentials {
-                username = cordaArtifactoryUsername
-                password = cordaArtifactoryPassword
+                username = System.getenv('CORDA_ARTIFACTORY_USERNAME')
+                password = System.getenv('CORDA_ARTIFACTORY_PASSWORD')
             }
         }
         maven {

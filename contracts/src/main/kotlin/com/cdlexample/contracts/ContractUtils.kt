@@ -1,8 +1,10 @@
 package com.cdlexample.contracts
 
-import net.corda.core.contracts.*
-import net.corda.core.serialization.CordaSerializable
-import net.corda.core.transactions.LedgerTransaction
+import net.corda.v5.base.annotations.CordaSerializable
+import net.corda.v5.ledger.contracts.CommandData
+import net.corda.v5.ledger.contracts.ContractState
+import net.corda.v5.ledger.contracts.requireThat
+import net.corda.v5.ledger.transactions.LedgerTransaction
 
 /**
  * ContractUtils.kt provides a set of classes, interfaces and helper functions which can be used in Corda Contracts
@@ -174,7 +176,7 @@ fun <T: StatusState> verifyPath(p: Path<T>, pathConstraintList: List<PathConstra
 /**
  * Helper function which checks there is only one status for all input states of a particular class in the transaction.
  */
-fun <T: StatusState>requireSingleInputStatus(tx:LedgerTransaction, statesClass: Class<T>): Status?{
+fun <T: StatusState>requireSingleInputStatus(tx: LedgerTransaction, statesClass: Class<T>): Status?{
     return requireSingleStatus(tx.inputsOfType(statesClass),"All inputs of type ${statesClass.simpleName} must have the same status.")
 }
 

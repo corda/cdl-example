@@ -1,0 +1,5 @@
+nodes:
+  partyA:
+  partyB:
+  notary:
+    notary: true

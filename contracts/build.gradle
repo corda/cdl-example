@@ -17,4 +17,6 @@ dependencies {
     implementation "net.corda.kotlin:kotlin-stdlib-jdk8-osgi:$kotlinVersion"
     // Corda dependencies.
     cordaProvided "$cordaReleaseGroup:corda-application:$cordaReleaseVersion"
+    cordaProvided "$cordaReleaseGroup:corda-application:$cordaReleaseVersion"
+    cordaProvided "$cordaReleaseGroup:corda-ledger:$cordaReleaseVersion"
 }
