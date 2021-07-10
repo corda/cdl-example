@@ -1,16 +1,16 @@
 package com.cdlexample.flows
 
-import co.paralleluniverse.fibers.Suspendable
-import net.corda.core.flows.*
-import net.corda.core.utilities.ProgressTracker
+import net.corda.v5.application.flows.*
+import net.corda.v5.base.annotations.Suspendable
+
 
 // *********
 // * Flows *
 // *********
 @InitiatingFlow
 @StartableByRPC
-class Initiator : FlowLogic<Unit>() {
-    override val progressTracker = ProgressTracker()
+class Initiator : Flow<Unit> {
+    //val progressTracker = CustomProgressTracker
 
     @Suspendable
     override fun call() {
@@ -19,7 +19,7 @@ class Initiator : FlowLogic<Unit>() {
 }
 
 @InitiatedBy(Initiator::class)
-class Responder(val counterpartySession: FlowSession) : FlowLogic<Unit>() {
+class Responder(val counterpartySession: FlowSession) : Flow<Unit> {
     @Suspendable
     override fun call() {
         // Responder flow logic goes here.

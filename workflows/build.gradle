@@ -1,9 +1,11 @@
-apply plugin: 'net.corda.plugins.cordapp'
-apply plugin: 'net.corda.plugins.quasar-utils'
+plugins {
+    id 'net.corda.plugins.quasar-utils'
+    id 'net.corda.plugins.cordapp-cpk'
+    id 'org.jetbrains.kotlin.jvm'
+}
 
 cordapp {
-    targetPlatformVersion corda_platform_version
-    minimumPlatformVersion corda_platform_version
+    targetPlatformVersion = cordaPlatformVersion.toInteger()
     workflow {
         name "Template Flows"
         vendor "Corda Open Source"
@@ -13,16 +15,6 @@ cordapp {
 }
 
 sourceSets {
-    main {
-        resources {
-            srcDir rootProject.file("config/dev")
-        }
-    }
-    test {
-        resources {
-            srcDir rootProject.file("config/test")
-        }
-    }
     integrationTest {
         kotlin {
             compileClasspath += main.output + test.output
@@ -33,19 +25,37 @@ sourceSets {
 }
 
 configurations {
-    integrationTestCompile.extendsFrom testCompile
-    integrationTestRuntime.extendsFrom testRuntime
+    integrationTestImplementation.extendsFrom testImplementation
+    integrationTestRuntimeOnly.extendsFrom testRuntimeOnly
 }
 
 dependencies {
-    compile "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin_version"
-    testCompile "org.jetbrains.kotlin:kotlin-test:$kotlin_version"
-    testCompile "junit:junit:$junit_version"
+    implementation "net.corda.kotlin:kotlin-stdlib-jdk8-osgi:$kotlinVersion"
+    testImplementation "net.corda:corda-flow-test-utils:$cordaReleaseVersion"
+    testImplementation "org.jetbrains.kotlin:kotlin-test:$kotlinVersion"
+    //testImplementation "junit:junit:$junitVersion"
+    testImplementation "org.junit.jupiter:junit-jupiter:$junitVersion"
+    testImplementation "org.assertj:assertj-core:$assertJVersion"
+    testImplementation "io.mockk:mockk:$mockkVersion"
+
+    testImplementation "org.mockito:mockito-core:3.+"
+    testImplementation "org.mockito:mockito-inline:3.+"
+    //testImplementation "org.mockito:mockito-core:2.28.+"
+    testImplementation("com.nhaarman:mockito-kotlin:1.6.0") {
+        exclude group:"mockito-core"
+    }
+
+    integrationTestImplementation "net.corda:corda-dev-network-lib:$cordaReleaseVersion"
+    integrationTestImplementation "net.corda:corda-client-extensions-rpc:$cordaReleaseVersion"
+    integrationTestImplementation "org.junit.jupiter:junit-jupiter:$junitVersion"
+    integrationTestImplementation "org.assertj:assertj-core:$assertJVersion"
+
+    testRuntimeOnly "org.junit.jupiter:junit-jupiter-engine:$junitVersion"
 
     // Corda dependencies.
-    cordaCompile "$corda_core_release_group:corda-core:$corda_core_release_version"
-    cordaRuntime "$corda_release_group:corda:$corda_release_version"
-    testCompile "$corda_release_group:corda-node-driver:$corda_release_version"
+    cordaProvided "$cordaReleaseGroup:corda-application:$cordaReleaseVersion"
+    cordaProvided "$cordaReleaseGroup:corda-flows:$cordaReleaseVersion"
+    cordaProvided "$cordaReleaseGroup:corda-crypto-api:$cordaReleaseVersion"
 
     // CorDapp dependencies.
     cordapp project(":contracts")
@@ -54,4 +64,7 @@ dependencies {
 task integrationTest(type: Test, dependsOn: []) {
     testClassesDirs = sourceSets.integrationTest.output.classesDirs
     classpath = sourceSets.integrationTest.runtimeClasspath
+}
+tasks.withType(Test).configureEach {
+    useJUnitPlatform()
 }

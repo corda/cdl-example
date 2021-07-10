@@ -2,9 +2,15 @@ package com.cdlexample.contracts
 
 import com.cdlexample.states.AgreementState
 import com.cdlexample.states.AgreementStatus.*
-import net.corda.core.contracts.*
-import net.corda.core.identity.Party
-import net.corda.core.transactions.LedgerTransaction
+import net.corda.v5.application.identity.Party
+import net.corda.v5.ledger.contracts.CommandData
+import net.corda.v5.ledger.contracts.Contract
+import net.corda.v5.ledger.contracts.requireSingleCommand
+import net.corda.v5.ledger.contracts.requireThat
+import net.corda.v5.ledger.transactions.LedgerTransaction
+import net.corda.v5.ledger.transactions.inputsOfType
+import net.corda.v5.ledger.transactions.outputsOfType
+
 
 // ************
 // * Contract *
