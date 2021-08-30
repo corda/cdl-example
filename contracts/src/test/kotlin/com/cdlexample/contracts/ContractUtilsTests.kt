@@ -47,33 +47,33 @@ class ContractUtilsTests() {
     @Test
     fun `check PathConstraint with default input and output multiplicities`() {
 
-        val pathConstraint = PathConstraint<TestStateA>(TestContract.Commands.Command1(), TestStateA.TestStatus.STATUSA1, MultiplicityConstraint(), MultiplicityConstraint())
+        val pathConstraint = PathConstraint(TestContract.Commands.Command1(), TestStateA.TestStatus.STATUSA1, MultiplicityConstraint(), MultiplicityConstraint())
 
-        val path1 = Path<TestStateA>(TestContract.Commands.Command1(), TestStateA.TestStatus.STATUSA1, 1, 1)
+        val path1 = Path(TestContract.Commands.Command1(), TestStateA.TestStatus.STATUSA1, 1, 1)
         assert(pathConstraint allows path1)
 
         // Different command
-        val path2 = Path<TestStateA>(TestContract.Commands.Command2(), TestStateA.TestStatus.STATUSA1, 1, 1)
+        val path2 = Path(TestContract.Commands.Command2(), TestStateA.TestStatus.STATUSA1, 1, 1)
         assert(pathConstraint doesNotAllow path2)
 
         // Different Status
-        val path3 = Path<TestStateA>(TestContract.Commands.Command1(), TestStateA.TestStatus.STATUSA2, 1, 1)
+        val path3 = Path(TestContract.Commands.Command1(), TestStateA.TestStatus.STATUSA2, 1, 1)
         assert(pathConstraint doesNotAllow path3)
 
         // Too many inputs
-        val path4 = Path<TestStateA>(TestContract.Commands.Command1(), TestStateA.TestStatus.STATUSA1, 2, 1)
+        val path4 = Path(TestContract.Commands.Command1(), TestStateA.TestStatus.STATUSA1, 2, 1)
         assert(pathConstraint doesNotAllow path4)
 
         // To few inputs
-        val path5 = Path<TestStateA>(TestContract.Commands.Command1(), TestStateA.TestStatus.STATUSA1, 0, 1)
+        val path5 = Path(TestContract.Commands.Command1(), TestStateA.TestStatus.STATUSA1, 0, 1)
         assert(pathConstraint doesNotAllow path5)
 
         // Too many outputs
-        val path6 = Path<TestStateA>(TestContract.Commands.Command1(), TestStateA.TestStatus.STATUSA1, 1, 2)
+        val path6 = Path(TestContract.Commands.Command1(), TestStateA.TestStatus.STATUSA1, 1, 2)
         assert(pathConstraint doesNotAllow path6)
 
         // Too few output
-        val path7 = Path<TestStateA>(TestContract.Commands.Command1(), TestStateA.TestStatus.STATUSA1, 1, 0)
+        val path7 = Path(TestContract.Commands.Command1(), TestStateA.TestStatus.STATUSA1, 1, 0)
         assert(pathConstraint doesNotAllow path7)
 
     }
@@ -110,34 +110,34 @@ class ContractUtilsTests() {
     fun `check PathConstraints with input and output Multiplicities`(){
 
         // test bounded input MultiplicityConstraint
-        val pathConstraint1 = PathConstraint<TestStateA>(TestContract.Commands.Command1(), TestStateA.TestStatus.STATUSA1, MultiplicityConstraint(1,true, 2), MultiplicityConstraint())
+        val pathConstraint1 = PathConstraint(TestContract.Commands.Command1(), TestStateA.TestStatus.STATUSA1, MultiplicityConstraint(1,true, 2), MultiplicityConstraint())
 
-        val path1 = Path<TestStateA>(TestContract.Commands.Command1(), TestStateA.TestStatus.STATUSA1, 0, 1)
+        val path1 = Path(TestContract.Commands.Command1(), TestStateA.TestStatus.STATUSA1, 0, 1)
         assert(pathConstraint1 doesNotAllow  path1)
 
-        val path2 = Path<TestStateA>(TestContract.Commands.Command1(), TestStateA.TestStatus.STATUSA1, 1, 1)
+        val path2 = Path(TestContract.Commands.Command1(), TestStateA.TestStatus.STATUSA1, 1, 1)
         assert(pathConstraint1 allows path2)
 
-        val path3 = Path<TestStateA>(TestContract.Commands.Command1(), TestStateA.TestStatus.STATUSA1, 2, 1)
+        val path3 = Path(TestContract.Commands.Command1(), TestStateA.TestStatus.STATUSA1, 2, 1)
         assert(pathConstraint1 allows path3)
 
-        val path4 = Path<TestStateA>(TestContract.Commands.Command1(), TestStateA.TestStatus.STATUSA1, 3, 1)
+        val path4 = Path(TestContract.Commands.Command1(), TestStateA.TestStatus.STATUSA1, 3, 1)
         assert(pathConstraint1 doesNotAllow  path4)
 
 
         // test unbounded output MultiplicityConstraint
-        val pathConstraint2 = PathConstraint<TestStateA>(TestContract.Commands.Command1(), TestStateA.TestStatus.STATUSA1, MultiplicityConstraint(), MultiplicityConstraint(1,false,0))
+        val pathConstraint2 = PathConstraint(TestContract.Commands.Command1(), TestStateA.TestStatus.STATUSA1, MultiplicityConstraint(), MultiplicityConstraint(1,false,0))
 
-        val path5 = Path<TestStateA>(TestContract.Commands.Command1(), TestStateA.TestStatus.STATUSA1, 1, 0)
+        val path5 = Path(TestContract.Commands.Command1(), TestStateA.TestStatus.STATUSA1, 1, 0)
         assert(pathConstraint2 doesNotAllow  path5)
 
-        val path6 = Path<TestStateA>(TestContract.Commands.Command1(), TestStateA.TestStatus.STATUSA1, 1, 1)
+        val path6 = Path(TestContract.Commands.Command1(), TestStateA.TestStatus.STATUSA1, 1, 1)
         assert(pathConstraint2 allows path6)
 
-        val path7 = Path<TestStateA>(TestContract.Commands.Command1(), TestStateA.TestStatus.STATUSA1, 1, 2)
+        val path7 = Path(TestContract.Commands.Command1(), TestStateA.TestStatus.STATUSA1, 1, 2)
         assert(pathConstraint2 allows path7)
 
-        val path8 = Path<TestStateA>(TestContract.Commands.Command1(), TestStateA.TestStatus.STATUSA1, 1, 3)
+        val path8 = Path(TestContract.Commands.Command1(), TestStateA.TestStatus.STATUSA1, 1, 3)
         assert(pathConstraint2 allows  path8)
     }
 
@@ -190,31 +190,31 @@ class ContractUtilsTests() {
         val asc2 = AdditionalStatesConstraint(AdditionalStatesType.OUTPUT, TestStateC::class.java, MultiplicityConstraint(1, true, 2))
 
         // Check PathConstraint with single AdditionalStatesConstraint
-        val pathConstraint1 = PathConstraint<TestStateA>(TestContract.Commands.Command1(), TestStateA.TestStatus.STATUSA1, additionalStatesConstraints = setOf(asc1))
+        val pathConstraint1 = PathConstraint(TestContract.Commands.Command1(), TestStateA.TestStatus.STATUSA1, additionalStatesConstraints = setOf(asc1))
 
-        val path1 = Path<TestStateA>(TestContract.Commands.Command1(), TestStateA.TestStatus.STATUSA1, 1, 1, setOf(as1))
+        val path1 = Path(TestContract.Commands.Command1(), TestStateA.TestStatus.STATUSA1, 1, 1, setOf(as1))
         assert(pathConstraint1 allows path1)
 
-        val path2 = Path<TestStateA>(TestContract.Commands.Command1(), TestStateA.TestStatus.STATUSA1, 1, 1, setOf(as2))
+        val path2 = Path(TestContract.Commands.Command1(), TestStateA.TestStatus.STATUSA1, 1, 1, setOf(as2))
         assert(pathConstraint1 doesNotAllow  path2)
 
-        val path3 = Path<TestStateA>(TestContract.Commands.Command1(), TestStateA.TestStatus.STATUSA1, 1, 1, setOf(as1, as2))
+        val path3 = Path(TestContract.Commands.Command1(), TestStateA.TestStatus.STATUSA1, 1, 1, setOf(as1, as2))
         assert(pathConstraint1 allows  path3)
 
 
         // Check PathConstraint with multiple AdditionalStatesConstraint
-        val pathConstraint2 = PathConstraint<TestStateA>(TestContract.Commands.Command1(), TestStateA.TestStatus.STATUSA1, additionalStatesConstraints = setOf(asc1, asc2))
+        val pathConstraint2 = PathConstraint(TestContract.Commands.Command1(), TestStateA.TestStatus.STATUSA1, additionalStatesConstraints = setOf(asc1, asc2))
 
-        val path21 = Path<TestStateA>(TestContract.Commands.Command1(), TestStateA.TestStatus.STATUSA1, 1, 1, setOf(as1))
+        val path21 = Path(TestContract.Commands.Command1(), TestStateA.TestStatus.STATUSA1, 1, 1, setOf(as1))
         assert(pathConstraint2 doesNotAllow  path21)
 
-        val path22 = Path<TestStateA>(TestContract.Commands.Command1(), TestStateA.TestStatus.STATUSA1, 1, 1, setOf(as2))
+        val path22 = Path(TestContract.Commands.Command1(), TestStateA.TestStatus.STATUSA1, 1, 1, setOf(as2))
         assert(pathConstraint2 doesNotAllow  path22)
 
-        val path23 = Path<TestStateA>(TestContract.Commands.Command1(), TestStateA.TestStatus.STATUSA1, 1, 1, setOf(as1, as2))
+        val path23 = Path(TestContract.Commands.Command1(), TestStateA.TestStatus.STATUSA1, 1, 1, setOf(as1, as2))
         assert(pathConstraint2 allows  path23)
 
-        val path24 = Path<TestStateA>(TestContract.Commands.Command1(), TestStateA.TestStatus.STATUSA1, 1, 1, setOf(as1, as2, as3))
+        val path24 = Path(TestContract.Commands.Command1(), TestStateA.TestStatus.STATUSA1, 1, 1, setOf(as1, as2, as3))
         assert(pathConstraint2 allows  path24)
     }
 }

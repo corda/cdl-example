@@ -144,7 +144,7 @@ class ContractUtilsLedgerTests {
 
 
             // todo: change to when statement
-            val pathConstraintsMap = mapOf<Status?, List<PathConstraint<T>>>(
+            val pathConstraintsMap = mapOf<Status?, List<PathConstraint>>(
                     TestState2A.TestStatus.STATUSA1 to listOf(
                             // PC1
                             PathConstraint(Commands.Command1(), TestState2A.TestStatus.STATUSA1, additionalStatesConstraints = setOf(

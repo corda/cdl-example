@@ -50,7 +50,7 @@ class AgreementContract : Contract {
 
         val inputStatus = requireSingleInputStatus(tx, primaryStateClass)
 
-        val allowedPaths: List<PathConstraint<T>> = when (inputStatus){
+        val allowedPaths: List<PathConstraint> = when (inputStatus){
             null -> listOf(
                     PathConstraint(Commands.Propose(), PROPOSED, MultiplicityConstraint(0))
             )

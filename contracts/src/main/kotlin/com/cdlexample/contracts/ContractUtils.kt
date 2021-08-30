@@ -38,7 +38,7 @@ interface Status
  * including whether they are inputs, outputs or reference states and how many of each are in the transaction.
  */
 
-class Path<T: StatusState>(val command: CommandData,
+class Path(val command: CommandData,
                            val outputStatus: Status?,
                            val numberOfInputStates: Int,
                            val numberOfOutputStates: Int,
@@ -79,7 +79,7 @@ enum class AdditionalStatesType {INPUT, OUTPUT, REFERENCE}
  *
  * A [Path] will only be allowed by a [PathConstraint] if it complies to all of the above requirements.
  */
-class PathConstraint<T: StatusState>(val command: CommandData,
+class PathConstraint(val command: CommandData,
                                      val outputStatus: Status?,
                                      val inputMultiplicityConstraint: MultiplicityConstraint = MultiplicityConstraint(),
                                      val outputMultiplicityConstraint: MultiplicityConstraint = MultiplicityConstraint(),
@@ -89,7 +89,7 @@ class PathConstraint<T: StatusState>(val command: CommandData,
      *
      * @property p the [Path] that is checked against the [PathConstraint].
      */
-    infix fun allows(p: Path<T>): Boolean =
+    infix fun allows(p: Path): Boolean =
         (command::class.java == p.command::class.java) &&
         (outputStatus == p.outputStatus) &&
         (inputMultiplicityConstraint allows p.numberOfInputStates) &&
@@ -99,7 +99,7 @@ class PathConstraint<T: StatusState>(val command: CommandData,
     /**
      * Negated version of [allows].
      */
-    infix fun doesNotAllow(p: Path<T>): Boolean = !this.allows(p)
+    infix fun doesNotAllow(p: Path): Boolean = !this.allows(p)
 
     /**
      * Returns a [Boolean] indicating whether all of additionalStateContraints are satisfied by the set of AdditionaState.
@@ -168,13 +168,13 @@ class MultiplicityConstraint(val from: Int = 1, val bounded: Boolean = true, val
  * @property p the [Path being verified].
  * @property pathConstraintList the set of [PathConstraint]s of which one or more must be satisfied by [p].
  */
-fun <T: StatusState> verifyPath(p: Path<T>, pathConstraintList: List<PathConstraint<T>>): Boolean =
+fun verifyPath(p: Path, pathConstraintList: List<PathConstraint>): Boolean =
         pathConstraintList.any { pc -> pc allows p }
 
 /**
  * Helper function which checks there is only one status for all input states of a particular class in the transaction.
  */
-fun <T: StatusState>requireSingleInputStatus(tx:LedgerTransaction, statesClass: Class<T>): Status?{
+fun requireSingleInputStatus(tx:LedgerTransaction, statesClass: Class<out StatusState>): Status?{
     return requireSingleStatus(tx.inputsOfType(statesClass),"All inputs of type ${statesClass.simpleName} must have the same status.")
 }
 
@@ -187,7 +187,7 @@ inline fun <reified T: StatusState>requireSingleInputStatus(tx:LedgerTransaction
 /**
  * Helper function which checks there is only one status for all output states of a particular class in the transaction.
  */
-fun <T: StatusState>requireSingleOutputStatus(tx:LedgerTransaction, statesClass: Class<T>): Status?{
+fun requireSingleOutputStatus(tx:LedgerTransaction, statesClass: Class<out StatusState>): Status?{
     return requireSingleStatus(tx.outputsOfType(statesClass), "All outputs of type ${statesClass.simpleName} must have the same status.")
 }
 
@@ -197,7 +197,7 @@ fun <T: StatusState>requireSingleOutputStatus(tx:LedgerTransaction, statesClass:
 inline fun <reified T: StatusState>requireSingleOutputStatus(tx:LedgerTransaction): Status? = requireSingleOutputStatus(tx, T::class.java)
 
 
-private fun <T: StatusState>requireSingleStatus (states: List<T>, error: String): Status?{
+private fun requireSingleStatus (states: List<StatusState>, error: String): Status?{
     val distinctStatuses = states.map {it.status}.distinct()
     requireThat {
         error using ( distinctStatuses.size <= 1)}
@@ -213,7 +213,7 @@ private fun <T: StatusState>requireSingleStatus (states: List<T>, error: String)
  * @property commandValue the Command value needs to be passed to getPath as ContractUtlis oes not have visibility of
  * the definitions of the contract Commands.
  */
-fun <T: StatusState>getPath(tx:LedgerTransaction, primaryStateClass: Class<T>, commandValue: CommandData): Path<T> {
+fun getPath(tx:LedgerTransaction, primaryStateClass: Class<out StatusState>, commandValue: CommandData): Path {
 
     val outputStatus = requireSingleOutputStatus(tx, primaryStateClass)
 
