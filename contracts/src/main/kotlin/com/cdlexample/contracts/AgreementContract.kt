@@ -13,6 +13,26 @@ class AgreementContract : Contract {
     companion object {
         // Used to identify our contract when building a transaction.
         const val ID = "com.cdlexample.contracts.AgreementContract"
+
+        fun allowedPaths(inputStatus: Status?): List<PathConstraint> {
+            val pathMap = mapOf(
+                null to listOf(
+                    PathConstraint(Commands.Propose(), PROPOSED, MultiplicityConstraint(0))
+                ),
+                PROPOSED to listOf(
+                    PathConstraint(Commands.Reject(), REJECTED),
+                    PathConstraint(Commands.Agree(), AGREED)
+                ),
+                REJECTED to listOf(
+                    PathConstraint(Commands.Repropose(), PROPOSED)
+                ),
+                AGREED to listOf(
+                    PathConstraint(Commands.Complete(), null, outputMultiplicityConstraint = MultiplicityConstraint(0))
+                )
+            )
+            return pathMap[inputStatus] ?: listOf()
+        }
+
     }
 
     // Used to indicate the transaction's intent.
@@ -42,7 +62,10 @@ class AgreementContract : Contract {
     inline fun <reified T: StatusState> verifyPathConstraints(tx: LedgerTransaction) = verifyPathConstraints(tx, T::class.java)
 
     // Java version
-    fun <T: StatusState> verifyPathConstraints(tx: LedgerTransaction, primaryStateClass: Class<T>){
+    fun  verifyPathConstraints(tx: LedgerTransaction, primaryStateClass: Class<out StatusState>){
+
+
+
 
         val commandValue = tx.commands.requireSingleCommand<AgreementContract.Commands>().value
 
@@ -50,22 +73,7 @@ class AgreementContract : Contract {
 
         val inputStatus = requireSingleInputStatus(tx, primaryStateClass)
 
-        val allowedPaths: List<PathConstraint> = when (inputStatus){
-            null -> listOf(
-                    PathConstraint(Commands.Propose(), PROPOSED, MultiplicityConstraint(0))
-            )
-            PROPOSED -> listOf(
-                    PathConstraint(Commands.Reject(), REJECTED),
-                    PathConstraint(Commands.Agree(), AGREED)
-            )
-            REJECTED -> listOf(
-                    PathConstraint(Commands.Repropose(), PROPOSED)
-            )
-            AGREED -> listOf(
-                    PathConstraint(Commands.Complete(), null, outputMultiplicityConstraint = MultiplicityConstraint(0))
-            )
-            else -> listOf()
-        }
+        val allowedPaths: List<PathConstraint> = allowedPaths(inputStatus)
 
         requireThat {
             "txPath must be allowed by PathConstraints for inputStatus $inputStatus." using verifyPath(txPath, allowedPaths)
