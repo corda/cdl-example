@@ -12,29 +12,21 @@ import java.util.*
 // *********
 // * State *
 // *********
-@BelongsToContract(AgreementContract::class)
-data class AgreementState(val status: AgreementStatus,
+
+@BelongsToContract(MyAwesomeContract::class)
+data class MyAwesomeState(val status: Status,
                           val buyer: Party,
                           val seller: Party,
-                          val goods: String,
-                          val price: Amount<Currency>,
-                          val proposer: Party,
-                          val consenter: Party,
-                          val rejectionReason: String? = null,
-                          val rejectedBy: Party?= null,
                           override val participants: List<AbstractParty> = listOf(buyer, seller),
                           override val linearId: UniqueIdentifier = UniqueIdentifier()) : LinearState, StandardState {
 
     override fun getParty(role: String) = when (role.toUpperCase()) {
         "BUYER" -> buyer
         "SELLER" -> seller
-        "PROPOSER" -> proposer
-        "CONSENTER" -> consenter
-        "REJECTOR" -> rejectedBy ?: throw RuntimeException("The role '$role' has undefined value in this state")
-        else -> throw RuntimeException("The role '$role' is unknown in the AgreementState")
+        else -> throw RuntimeException("The role '$role' is unknown in the MyAwesomeState")
     }
 
-    override fun isInStatus(status: String) = AgreementStatus.valueOf(status.toUpperCase()) == this.status
+    override fun isInStatus(status: String) = Status.valueOf(status.toUpperCase()) == this.status
 }
 
 @CordaSerializable
